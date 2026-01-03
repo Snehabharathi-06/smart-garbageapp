@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Firebase Auth Demo</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <div class="container">
+
+        <!-- AUTH SECTION -->
+        <div id="authSection">
+            <h2>Smart - Garbage</h2>
+
+            <input type="email" id="email" placeholder="Email" />
+            <input type="password" id="password" placeholder="Password" />
+              
+            <select id="role">
+              <option value="" disabled selected>Select Role</option>
+              <option value="citizen">Citizen</option>
+              <option value="collector">Collector</option>
+              <option value="admin">Admin</option>
+            </select>
+            <button onclick="signUp()">Sign Up</button>
+            <button onclick="login()">Login</button>
+            <button onclick="googleLogin()">Sign in with Google</button>
+
+
+            <p id="message"></p>
+        </div>
+
+        <!-- DASHBOARD SECTION -->
+        <div id="dashboard" style="display:none;">
+            <h2>Welcome 🎉</h2>
+            <p id="userEmail"></p>
+            <button onclick="logout()">Logout</button>
+        </div>
+
+    </div>
+
+
+    <!-- Firebase SDK -->
+    <script type="module" src="app.js"></script>
+</body>
+
+</html>

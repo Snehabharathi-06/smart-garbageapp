@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Smart-Garbage – Citizen Garbage Report</title>
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Three.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+
+  <style>
+    body {
+      background: radial-gradient(circle at top, #0b1220, #020617);
+      overflow-x: hidden;
+    }
+    .glass {
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+    canvas {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+    }
+  </style>
+</head>
+
+<body class="text-white min-h-screen flex flex-col items-center justify-center px-6">
+
+  <!-- Three.js Background -->
+  <canvas id="bg"></canvas>
+
+  <!-- Hero Section -->
+  <section class="text-center max-w-4xl mb-12">
+    <h1 class="text-4xl md:text-6xl font-extrabold tracking-tight mb-4">
+      Smart - Garbage
+    </h1>
+    <p class="text-lg text-slate-300">
+      Report garbage issues in your area and help keep the city clean and sustainable.
+    </p>
+    <p id="citizenId" class="mt-2 text-slate-400 font-medium"></p>
+    <button
+  onclick="logout()"
+  class="mt-4 px-6 py-2 rounded-xl bg-red-500 hover:bg-red-400 text-slate-900 font-semibold transition"
+>
+  Logout
+</button>
+
+
+  </section>
+
+  <!-- Main Interactive Card -->
+  <section class="glass w-full max-w-3xl rounded-2xl shadow-2xl p-6 md:p-8 transition hover:scale-[1.02]">
+    <h2 class="text-xl font-semibold mb-4">Report Garbage Issue</h2>
+
+    <!-- Manual Area Input -->
+<input
+  id="landmark"
+  type="text"
+  placeholder="Enter area / landmark (near bus stop, school, park...)"
+  class="w-full mb-3 rounded-lg bg-slate-900/60 border border-slate-700 p-3 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+/>
+
+<!-- OR Divider -->
+<p class="text-center text-slate-400 mb-3">OR</p>
+
+<!-- Use Current Location -->
+<button
+  onclick="getLocation()"
+  class="mb-2 w-full py-2 rounded-lg bg-sky-500 hover:bg-sky-400 text-slate-900 font-semibold transition"
+>
+  📍 Use Current Location
+</button>
+
+<p id="locationStatus" class="text-sm text-slate-400 mb-4"></p>
+
+
+    <textarea
+     id="description"
+     rows="3"
+     placeholder="Describe the garbage problem..."
+     class="w-full rounded-lg bg-slate-900/60 border border-slate-700 p-3 ..."
+    ></textarea>
+
+
+    <label class="block mt-4 mb-2 text-sm text-slate-300">
+      Upload Garbage Photo
+    </label>
+    <input
+      type="file"
+      accept="image/*"
+      class="w-full text-sm text-slate-300 file:bg-emerald-500 file:border-none file:px-4 file:py-2 file:rounded-lg file:text-slate-900 file:font-semibold hover:file:bg-emerald-400"
+    />
+
+    <button
+      onclick="submitReport()"
+      class="mt-6 w-full py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-900 font-semibold transition"
+    >
+      Submit Report
+    </button>
+
+    <!-- Loading -->
+    <div id="loading" class="hidden mt-4 text-center text-emerald-400 animate-pulse">
+      Submitting your report...
+    </div>
+
+    <!-- Output Section -->
+    <div id="output" class="hidden mt-6 text-center">
+      <h3 class="text-lg font-semibold text-emerald-400">
+        Report Submitted Successfully
+      </h3>
+      <p class="text-slate-300 mt-2">
+        Municipal authorities will review and take action shortly.
+      </p>
+    </div>
+  </section>
+  <!-- Citizen Report Status Section -->
+<section class="glass w-full max-w-3xl mt-10 rounded-2xl p-6">
+  <h2 class="text-xl font-semibold mb-4">Your Reports</h2>
+
+  <div id="myReports" class="space-y-4">
+    <p class="text-slate-400 text-center">Loading your reports...</p>
+  </div>
+</section>
+
+
+  <script>
+    
+
+    // Three.js Background (City Particles)
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(
+      75,
+      window.innerWidth / window.innerHeight,
+      0.1,
+      1000
+    );
+    const renderer = new THREE.WebGLRenderer({
+      canvas: document.getElementById("bg"),
+      alpha: true
+    });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+
+    const geometry = new THREE.BufferGeometry();
+    const count = 1200;
+    const positions = new Float32Array(count * 3);
+
+    for (let i = 0; i < count * 3; i++) {
+      positions[i] = (Math.random() - 0.5) * 1200;
+    }
+
+    geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+    const material = new THREE.PointsMaterial({
+      color: 0x34d399,
+      size: 1
+    });
+    const points = new THREE.Points(geometry, material);
+    scene.add(points);
+
+    camera.position.z = 450;
+
+    function animate() {
+      requestAnimationFrame(animate);
+      points.rotation.y += 0.00035;
+      renderer.render(scene, camera);
+    }
+    animate();
+
+    window.addEventListener("resize", () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+  </script>
+  <script>
+  let userLatitude = null;
+let userLongitude = null;
+let mapLink = null;
+
+function getLocation() {
+  if (!navigator.geolocation) {
+    document.getElementById("locationStatus").innerText =
+      "Geolocation not supported";
+    return;
+  }
+
+  document.getElementById("locationStatus").innerText =
+    "Fetching location...";
+
+  navigator.geolocation.getCurrentPosition(
+    (position) => {
+      userLatitude = position.coords.latitude;
+      userLongitude = position.coords.longitude;
+
+      mapLink = `https://www.google.com/maps?q=${userLatitude},${userLongitude}`;
+
+      document.getElementById("locationStatus").innerText =
+        "Location captured successfully ✔";
+    },
+    () => {
+      document.getElementById("locationStatus").innerText =
+        "Unable to fetch location";
+    }
+  );
+}
+
+</script>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
+import { getDatabase, ref, push, onValue, get } from
+  "https://www.gstatic.com/firebasejs/12.7.0/firebase-database.js";
+import { getAuth , signOut } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
+
+/* ---------- Firebase Init ---------- */
+const firebaseConfig = {
+  apiKey: "AIzaSyAfF5WijTd9LbgqrIZDp3imRx36Aeg3OAg",
+  authDomain: "smart-garbageapp.firebaseapp.com",
+  databaseURL: "https://smart-garbageapp-default-rtdb.firebaseio.com",
+  projectId: "smart-garbageapp",
+  storageBucket: "smart-garbageapp.firebasestorage.app",
+  messagingSenderId: "109287159774",
+  appId: "1:109287159774:web:48233baca941db42f78f4f"
+};
+
+const app = initializeApp(firebaseConfig);
+const database = getDatabase(app);
+const auth = getAuth(app);
+
+  // ✅ ADD LOGOUT HERE
+  window.logout = function () {
+    signOut(auth).then(() => {
+      window.location.href = "index.html";
+    });
+  };
+/* ---------- AUTH STATE (SINGLE SOURCE OF TRUTH) ---------- */
+auth.onAuthStateChanged(async (user) => {
+  if (!user) return;
+
+  // 🔹 Show Citizen ID
+  const userSnap = await get(ref(database, "users/" + user.uid));
+  if (userSnap.exists()) {
+    document.getElementById("citizenId").innerText =
+      "Citizen ID: " + userSnap.val().citizenNumber;
+  }
+
+  // 🔹 Load Citizen Reports
+  const myReportsContainer = document.getElementById("myReports");
+  const reportsRef = ref(database, "reports");
+
+  onValue(reportsRef, (snapshot) => {
+    myReportsContainer.innerHTML = "";
+
+    if (!snapshot.exists()) {
+      myReportsContainer.innerHTML =
+        `<p class="text-slate-400 text-center">No reports found</p>`;
+      return;
+    }
+
+    let found = false;
+
+    snapshot.forEach((child) => {
+      const r = child.val();
+      if (r.citizenEmail !== user.email) return;
+
+      found = true;
+
+      myReportsContainer.innerHTML += `
+        <div class="glass p-4 rounded-xl">
+          <p><b>Landmark:</b> ${r.landmark}</p>
+
+          ${
+            r.mapLink && r.mapLink !== "Manual area only"
+              ? `<a href="${r.mapLink}" target="_blank"
+                   class="text-sky-400 underline">📍 View Location</a>`
+              : `<p class="text-slate-400">Manual area only</p>`
+          }
+
+          <p class="mt-2">
+            <b>Status:</b>
+            <span class="${
+              r.status === "resolved"
+                ? "text-green-400"
+                : "text-yellow-400"
+            } font-semibold">
+              ${r.status}
+            </span>
+          </p>
+        </div>
+      `;
+    });
+
+    if (!found) {
+      myReportsContainer.innerHTML =
+        `<p class="text-slate-400 text-center">
+           You haven’t reported any issues yet
+         </p>`;
+    }
+  });
+});
+
+/* ---------- SUBMIT REPORT ---------- */
+window.submitReport = async function () {
+  const landmark = document.getElementById("landmark").value.trim();
+  const description = document.getElementById("description").value.trim();
+  const loading = document.getElementById("loading");
+  const output = document.getElementById("output");
+
+  if (!landmark && (userLatitude === null || userLongitude === null)) {
+    alert("Please enter a landmark OR use current location");
+    return;
+  }
+
+  const user = auth.currentUser;
+  if (!user) {
+    alert("User not logged in");
+    return;
+  }
+
+  const userSnap = await get(ref(database, "users/" + user.uid));
+  const citizenNumber = userSnap.exists()
+    ? userSnap.val().citizenNumber
+    : "UNKNOWN";
+
+  const mapLink =
+    userLatitude && userLongitude
+      ? `https://www.google.com/maps?q=${userLatitude},${userLongitude}`
+      : "Manual area only";
+
+  loading.classList.remove("hidden");
+  output.classList.add("hidden");
+
+  await push(ref(database, "reports"), {
+    citizenEmail: user.email,
+    citizenNumber: citizenNumber,
+    landmark: landmark || "Not provided",
+    description: description || "Not provided",
+    mapLink: mapLink,
+    status: "pending",
+    timestamp: Date.now()
+  });
+
+  loading.classList.add("hidden");
+  output.classList.remove("hidden");
+
+  document.getElementById("landmark").value = "";
+  document.getElementById("description").value = "";
+  document.getElementById("locationStatus").innerText = "";
+  userLatitude = userLongitude = null;
+};
+window.logout = function () {
+  signOut(auth)
+    .then(() => {
+      window.location.replace("index.html");
+    })
+    .catch((error) => {
+      alert("Logout failed: " + error.message);
+    });
+};
+
+</script>
+
+
+</body>
+</html>

@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Smart - Garbage – Collector Dashboard</title>
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Three.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+
+  <style>
+    body {
+      background: radial-gradient(circle at top, #0b1220, #020617);
+      overflow-x: hidden;
+    }
+    .glass {
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+    canvas {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+    }
+  </style>
+</head>
+
+<body class="text-white min-h-screen flex flex-col items-center justify-center px-6">
+
+  <!-- Three.js Background -->
+  <canvas id="bg"></canvas>
+
+  <!-- Hero Section -->
+  <section class="text-center max-w-4xl mb-12">
+    <h1 class="text-4xl md:text-6xl font-extrabold tracking-tight mb-4">
+      Smart - Garbage Collector Dashboard
+    </h1>
+    <p class="text-lg text-slate-300">
+      Review citizen garbage reports, verify locations, and take action to keep the city clean.
+    </p>
+    <button
+  onclick="logout()"
+  class="mt-4 px-6 py-2 rounded-xl bg-red-500 hover:bg-red-400 text-slate-900 font-semibold transition"
+>
+  Logout
+</button>
+
+  </section>
+
+  <!-- Main Interactive Card -->
+  <section class="glass w-full max-w-4xl rounded-2xl shadow-2xl p-6 md:p-8 transition hover:scale-[1.02]">
+    <h2 class="text-xl font-semibold mb-6">Assigned Garbage Report</h2>
+
+    <div id="reportsContainer" class="space-y-6"></div>
+
+    <p id="noReports" class="text-center text-slate-400 mt-6 hidden">
+    No garbage reports available
+    </p>
+
+    </div>
+
+    <!-- Loading -->
+    <div id="loading" class="hidden mt-6 text-center text-emerald-400 animate-pulse">
+      Updating report status...
+    </div>
+
+    <!-- Output -->
+    <div id="output" class="hidden mt-6 text-center">
+      <h3 class="text-lg font-semibold text-emerald-400">
+        Status Updated Successfully
+      </h3>
+      <p class="text-slate-300 mt-2">
+        The report has been processed and updated in the system.
+      </p>
+    </div>
+  </section>
+
+  <script>
+    function acceptTask() {
+      showStatus();
+    }
+
+    function markResolved() {
+      showStatus();
+    }
+
+    function showStatus() {
+      const loading = document.getElementById("loading");
+      const output = document.getElementById("output");
+
+      loading.classList.remove("hidden");
+      output.classList.add("hidden");
+
+      setTimeout(() => {
+        loading.classList.add("hidden");
+        output.classList.remove("hidden");
+      }, 1500);
+    }
+
+    // Three.js Background (City Operations Particles)
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(
+      75,
+      window.innerWidth / window.innerHeight,
+      0.1,
+      1000
+    );
+    const renderer = new THREE.WebGLRenderer({
+      canvas: document.getElementById("bg"),
+      alpha: true
+    });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+
+    const geometry = new THREE.BufferGeometry();
+    const count = 1300;
+    const positions = new Float32Array(count * 3);
+
+    for (let i = 0; i < count * 3; i++) {
+      positions[i] = (Math.random() - 0.5) * 1200;
+    }
+
+    geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+    const material = new THREE.PointsMaterial({
+      color: 0x38bdf8,
+      size: 1
+    });
+    const points = new THREE.Points(geometry, material);
+    scene.add(points);
+
+    camera.position.z = 450;
+
+    function animate() {
+      requestAnimationFrame(animate);
+      points.rotation.y += 0.00035;
+      renderer.render(scene, camera);
+    }
+    animate();
+
+    window.addEventListener("resize", () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+  </script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
+import { getDatabase, ref, onValue, update } 
+  from "https://www.gstatic.com/firebasejs/12.7.0/firebase-database.js";
+  import { 
+  getAuth, 
+  signOut, 
+  
+} from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAfF5WijTd9LbgqrIZDp3imRx36Aeg3OAg",
+  authDomain: "smart-garbageapp.firebaseapp.com",
+  databaseURL: "https://smart-garbageapp-default-rtdb.firebaseio.com",
+  projectId: "smart-garbageapp",
+  storageBucket: "smart-garbageapp.firebasestorage.app",
+  messagingSenderId: "109287159774",
+  appId: "1:109287159774:web:48233baca941db42f78f4f"
+};
+
+const app = initializeApp(firebaseConfig);
+const database = getDatabase(app);
+const auth = getAuth(app);
+
+const container = document.getElementById("reportsContainer");
+const noReports = document.getElementById("noReports");
+
+ 
+
+onValue(ref(database, "reports"), (snapshot) => {
+  container.innerHTML = "";
+  noReports.classList.add("hidden");
+
+  if (!snapshot.exists()) {
+    noReports.classList.remove("hidden");
+    return;
+  }
+
+  let found = false;
+
+  snapshot.forEach((child) => {
+    const reportId = child.key;   // 🔥 IMPORTANT
+    const r = child.val();
+
+    if (r.status !== "pending") return;
+
+    found = true;
+
+    const card = document.createElement("div");
+    card.className = "glass p-6 rounded-xl";
+
+    card.innerHTML = `
+      <p><b>Citizen ID:</b> ${r.citizenNumber}</p>
+      <p><b>Email:</b> ${r.citizenEmail}</p>
+      <p><b>Landmark:</b> ${r.landmark}</p>
+
+      ${
+        r.mapLink && r.mapLink !== "Manual area only"
+          ? `<a href="${r.mapLink}" target="_blank" class="text-sky-400 underline">
+               📍 Open in Google Maps
+             </a>`
+          : `<p class="text-slate-400">Manual area only</p>`
+      }
+
+      <p class="mt-2"><b>Status:</b>
+        <span class="text-yellow-400">${r.status}</span>
+      </p>
+
+      <button
+        onclick="markResolved('${reportId}')"
+        class="mt-4 w-full py-2 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-900 font-semibold">
+        Mark as Resolved
+      </button>
+    `;
+
+    container.appendChild(card);
+  });
+
+  if (!found) {
+    noReports.classList.remove("hidden");
+  }
+});
+
+window.markResolved = function (reportId) {
+  update(ref(database, "reports/" + reportId), {
+    status: "resolved",
+    resolvedAt: Date.now()
+  });
+};
+window.logout = function () {
+  signOut(auth)
+    .then(() => {
+      window.location.replace("index.html");
+    })
+    .catch((error) => {
+      alert("Logout failed: " + error.message);
+    });
+};
+
+</script>
+
+
+</body>
+</html>
