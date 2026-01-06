@@ -213,9 +213,12 @@ function getLocation() {
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
-import { getDatabase, ref, push, onValue, get } from
-  "https://www.gstatic.com/firebasejs/12.7.0/firebase-database.js";
-import { getAuth , signOut } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
+import { 
+  getDatabase, ref, push, onValue, get, set 
+} from "https://www.gstatic.com/firebasejs/12.7.0/firebase-database.js";
+import { 
+  getAuth, signOut, onAuthStateChanged 
+} from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
 
 /* ---------- Firebase Init ---------- */
 const firebaseConfig = {
@@ -232,74 +235,67 @@ const app = initializeApp(firebaseConfig);
 const database = getDatabase(app);
 const auth = getAuth(app);
 
-  // ✅ ADD LOGOUT HERE
-  window.logout = function () {
-    signOut(auth).then(() => {
-      window.location.href = "index.html";
-    });
-  };
-/* ---------- AUTH STATE (SINGLE SOURCE OF TRUTH) ---------- */
-auth.onAuthStateChanged(async (user) => {
+/* ---------- LOGOUT ---------- */
+window.logout = function () {
+  signOut(auth)
+    .then(() => window.location.replace("index.html"))
+    .catch(err => alert(err.message));
+};
+
+/* ---------- AUTH STATE ---------- */
+onAuthStateChanged(auth, async (user) => {
   if (!user) return;
 
-  // 🔹 Show Citizen ID
+  // 🔹 FIX 1: Handle Google Users who aren't in the "users" database yet
   const userSnap = await get(ref(database, "users/" + user.uid));
+  const citizenIdElement = document.getElementById("citizenId");
+
   if (userSnap.exists()) {
-    document.getElementById("citizenId").innerText =
-      "Citizen ID: " + userSnap.val().citizenNumber;
+    citizenIdElement.innerText = "Citizen ID: " + userSnap.val().citizenNumber;
+  } else {
+    // If Google user, assign a temporary display ID so it's not 'undefined'
+    citizenIdElement.innerText = "Logged in as: " + user.email;
+    
+    // Optional: Auto-create a record for them in the database
+    await set(ref(database, "users/" + user.uid), {
+        citizenNumber: "G-" + Math.floor(1000 + Math.random() * 9000),
+        email: user.email
+    });
   }
 
-  // 🔹 Load Citizen Reports
-  const myReportsContainer = document.getElementById("myReports");
+  // Load reports
   const reportsRef = ref(database, "reports");
+  const myReports = document.getElementById("myReports");
 
   onValue(reportsRef, (snapshot) => {
-    myReportsContainer.innerHTML = "";
-
-    if (!snapshot.exists()) {
-      myReportsContainer.innerHTML =
-        `<p class="text-slate-400 text-center">No reports found</p>`;
-      return;
-    }
-
+    myReports.innerHTML = "";
     let found = false;
 
-    snapshot.forEach((child) => {
-      const r = child.val();
-      if (r.citizenEmail !== user.email) return;
+    if (snapshot.exists()) {
+      snapshot.forEach(child => {
+        const r = child.val();
+        if (r.citizenEmail !== user.email) return;
 
-      found = true;
-
-      myReportsContainer.innerHTML += `
-        <div class="glass p-4 rounded-xl">
-          <p><b>Landmark:</b> ${r.landmark}</p>
-
-          ${
-            r.mapLink && r.mapLink !== "Manual area only"
-              ? `<a href="${r.mapLink}" target="_blank"
-                   class="text-sky-400 underline">📍 View Location</a>`
-              : `<p class="text-slate-400">Manual area only</p>`
-          }
-
-          <p class="mt-2">
-            <b>Status:</b>
-            <span class="${
-              r.status === "resolved"
-                ? "text-green-400"
-                : "text-yellow-400"
-            } font-semibold">
-              ${r.status}
-            </span>
-          </p>
-        </div>
-      `;
-    });
+        found = true;
+        myReports.innerHTML += `
+          <div class="glass p-4 rounded-xl mb-3">
+            <p><b>Landmark:</b> ${r.landmark}</p>
+            ${
+              r.mapLink && r.mapLink !== "Manual area only"
+                ? `<a href="${r.mapLink}" target="_blank" class="text-sky-400 underline">📍 View Location</a>`
+                : `<p class="text-slate-400">Manual area only</p>`
+            }
+            <p class="mt-2"><b>Status:</b>
+              <span class="${r.status === "resolved" ? "text-green-400" : "text-yellow-400"} font-semibold">
+                ${r.status}
+              </span>
+            </p>
+          </div>`;
+      });
+    }
 
     if (!found) {
-      myReportsContainer.innerHTML =
-        `<p class="text-slate-400 text-center">
-           You haven’t reported any issues yet
-         </p>`;
+      myReports.innerHTML = `<p class="text-slate-400 text-center">No reports yet</p>`;
     }
   });
 });
@@ -312,58 +308,59 @@ window.submitReport = async function () {
   const output = document.getElementById("output");
 
   if (!landmark && (userLatitude === null || userLongitude === null)) {
-    alert("Please enter a landmark OR use current location");
+    alert("Enter landmark OR use current location");
     return;
   }
 
   const user = auth.currentUser;
   if (!user) {
-    alert("User not logged in");
+    alert("Login expired. Please login again.");
     return;
   }
-
-  const userSnap = await get(ref(database, "users/" + user.uid));
-  const citizenNumber = userSnap.exists()
-    ? userSnap.val().citizenNumber
-    : "UNKNOWN";
-
-  const mapLink =
-    userLatitude && userLongitude
-      ? `https://www.google.com/maps?q=${userLatitude},${userLongitude}`
-      : "Manual area only";
 
   loading.classList.remove("hidden");
   output.classList.add("hidden");
 
-  await push(ref(database, "reports"), {
-    citizenEmail: user.email,
-    citizenNumber: citizenNumber,
-    landmark: landmark || "Not provided",
-    description: description || "Not provided",
-    mapLink: mapLink,
-    status: "pending",
-    timestamp: Date.now()
-  });
+  try {
+    const userSnap = await get(ref(database, "users/" + user.uid));
+    
+    // 🔹 FIX 2: Default to 'GOOGLE_USER' instead of letting it break or show 'undefined'
+    const citizenNumber = userSnap.exists() 
+      ? userSnap.val().citizenNumber 
+      : "GOOGLE_USER";
 
-  loading.classList.add("hidden");
-  output.classList.remove("hidden");
+    // 🔹 FIX 3: Corrected the Map Link Syntax (template literals use ${} not 0{})
+    const finalMapLink = (userLatitude && userLongitude)
+        ? `https://www.google.com/maps?q=${userLatitude},${userLongitude}`
+        : "Manual area only";
 
-  document.getElementById("landmark").value = "";
-  document.getElementById("description").value = "";
-  document.getElementById("locationStatus").innerText = "";
-  userLatitude = userLongitude = null;
-};
-window.logout = function () {
-  signOut(auth)
-    .then(() => {
-      window.location.replace("index.html");
-    })
-    .catch((error) => {
-      alert("Logout failed: " + error.message);
+    await push(ref(database, "reports"), {
+      citizenEmail: user.email,
+      citizenNumber: citizenNumber,
+      landmark: landmark || "Not provided",
+      description: description || "Not provided",
+      mapLink: finalMapLink,
+      status: "pending",
+      timestamp: Date.now()
     });
-};
 
+    loading.classList.add("hidden");
+    output.classList.remove("hidden");
+
+    // Clear form
+    document.getElementById("landmark").value = "";
+    document.getElementById("description").value = "";
+    document.getElementById("locationStatus").innerText = "";
+    userLatitude = userLongitude = null;
+
+  } catch (err) {
+    loading.classList.add("hidden");
+    console.error(err);
+    alert("Submission failed: " + err.message);
+  }
+};
 </script>
+
 
 
 </body>
