@@ -37,13 +37,13 @@
 
   <!-- Hero Section -->
   <section class="text-center max-w-4xl mb-12">
-    <h1 class="text-4xl md:text-6xl font-extrabold tracking-tight mb-4">
+    <h1 class="text-4xl md:text-6xl font-extrabold tracking-tight mb-4" data-lang="appName1">
       Smart - Garbage Collector Dashboard
     </h1>
-    <p class="text-lg text-slate-300">
-      Review citizen garbage reports, verify locations, and take action to keep the city clean.
+    <p class="text-lg text-slate-300" data-lang="tagline1">
+      
     </p>
-    <button
+    <button data-lang = "logout"
   onclick="logout()"
   class="mt-4 px-6 py-2 rounded-xl bg-red-500 hover:bg-red-400 text-slate-900 font-semibold transition"
 >
@@ -54,7 +54,7 @@
 
   <!-- Main Interactive Card -->
   <section class="glass w-full max-w-4xl rounded-2xl shadow-2xl p-6 md:p-8 transition hover:scale-[1.02]">
-    <h2 class="text-xl font-semibold mb-6">Assigned Garbage Report</h2>
+    <h2 class="text-xl font-semibold mb-6" data-lang ="Report1">Assigned Garbage Report</h2>
 
     <div id="reportsContainer" class="space-y-6"></div>
 
@@ -171,6 +171,17 @@ const app = initializeApp(firebaseConfig);
 const database = getDatabase(app);
 const auth = getAuth(app);
 
+import { onAuthStateChanged } 
+  from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
+
+onAuthStateChanged(auth, (user) => {
+  if (!user) return;
+
+  window.currentUser = user;     // 🔑 REQUIRED
+  loadUserLanguage(user);        // ✅ CORRECT
+});
+
+
 const container = document.getElementById("reportsContainer");
 const noReports = document.getElementById("noReports");
 
@@ -248,6 +259,25 @@ window.logout = function () {
 
 </script>
 
+<body class="text-white min-h-screen flex flex-col items-center justify-center px-6">
+
+  <!-- Language Toggle (TOP RIGHT) -->
+  <div class="fixed top-4 right-4 z-50 flex gap-2">
+    <button
+      onclick="setUserLanguage('en')"
+      class="px-3 py-1 rounded-lg bg-black/40 hover:bg-black/60 text-sm"
+    >
+      English
+    </button>
+
+    <button
+      onclick="setUserLanguage('kn')"
+      class="px-3 py-1 rounded-lg bg-black/40 hover:bg-black/60 text-sm"
+    >
+      ಕನ್ನಡ
+    </button>
+  </div>
+
 <footer class="w-full bg-black/60 mt-20">
   <div class="max-w-6xl mx-auto px-10 py-10">
 
@@ -256,36 +286,42 @@ window.logout = function () {
 
       <!-- LEFT -->
       <div class="text-left">
-        <h2 class="text-emerald-400 text-xl font-semibold mb-2">
+        <h2 class="text-emerald-400 text-xl font-semibold mb-2" data-lang="smart">
           ♻️ Smart-Garbage
         </h2>
-        <p class="text-sm mb-4">
+        <p class="text-sm mb-4" data-lang="line">
           Building cleaner and smarter cities together.
         </p>
 
-        <h3 class="font-semibold mb-2">Follow Us</h3>
-        <p>Instagram</p>
-        <p>Twitter</p>
-        <p>Facebook</p>
+        <h3 class="font-semibold mb-2" data-lang="followUs">Follow Us</h3>
+        <p data-lang="Follow1">Instagram</p>
+        <p data-lang="Follow2">Twitter</p>
+        <p data-lang="Follow3">Facebook</p>
       </div>
 
       <!-- RIGHT -->
       <div class="text-right">
-        <h3 class="font-semibold mb-2">Contact Us</h3>
-        <p>📍 3rd Cross,5th Main Road, J.P Nagar, Bengaluru, Karnataka, India</p>
-        <p>📞 +91 98765 43210 - Anuj P</p>
-        <p>✉️ smartgarbage@gmail.com</p>
+        <h3 class="font-semibold mb-2" data-lang="contactUs">Contact Us</h3>
+        <p data-lang="address">📍 3rd Cross,5th Main Road, J.P Nagar, Bengaluru, Karnataka, India</p>
+        <p data-lang="phoneno">📞 +91 98765 43210 - Anuj P</p>
+        <p data-lang="emailadd">✉️ smartgarbage@gmail.com</p>
       </div>
 
     </div>
 
     <!-- BOTTOM -->
-    <div class="border-t border-white/30 mt-8 pt-4 text-center text-sm">
+    <div class="border-t border-white/30 mt-8 pt-4 text-center text-sm" data-lang="rights">
       © 2026 Smart-Garbage. All rights reserved.
     </div>
 
   </div>
 </footer>
+
+
+<script src="lang.js"></script>
+
+
+
 
 </body>
 </html>

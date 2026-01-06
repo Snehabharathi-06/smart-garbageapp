@@ -32,22 +32,40 @@
 
 <body class="text-white min-h-screen flex flex-col items-center justify-center px-6">
 
+    <!-- Language Toggle (TOP RIGHT) -->
+  <div class="fixed top-4 right-4 z-50 flex gap-2">
+    <button
+      onclick="setUserLanguage('en')"
+      class="px-3 py-1 rounded-lg bg-black/40 hover:bg-black/60 text-sm"
+    >
+      English
+    </button>
+
+    <button
+      onclick="setUserLanguage('kn')"
+      class="px-3 py-1 rounded-lg bg-black/40 hover:bg-black/60 text-sm"
+    >
+      ಕನ್ನಡ
+    </button>
+  </div>
+
+
   <!-- Three.js Background -->
   <canvas id="bg"></canvas>
 
   <!-- Hero Section -->
   <section class="text-center max-w-4xl mb-12">
-    <h1 class="text-4xl md:text-6xl font-extrabold tracking-tight mb-4">
-      Smart - Garbage
+    <h1 class="text-4xl md:text-6xl font-extrabold tracking-tight mb-4" data-lang="appName2">
+      Smart - Garbage Citizen Dahboard
     </h1>
-    <p class="text-lg text-slate-300">
+    <p class="text-lg text-slate-300" data-lang="tagline">
       Report garbage issues in your area and help keep the city clean and sustainable.
     </p>
     <p id="citizenId" class="mt-2 text-slate-400 font-medium"></p>
     <button
   onclick="logout()"
   class="mt-4 px-6 py-2 rounded-xl bg-red-500 hover:bg-red-400 text-slate-900 font-semibold transition"
->
+data-lang="logout">
   Logout
 </button>
 
@@ -56,12 +74,13 @@
 
   <!-- Main Interactive Card -->
   <section class="glass w-full max-w-3xl rounded-2xl shadow-2xl p-6 md:p-8 transition hover:scale-[1.02]">
-    <h2 class="text-xl font-semibold mb-4">Report Garbage Issue</h2>
+    <h2 class="text-xl font-semibold mb-4" data-lang="reportGarbage">Report Garbage Issue</h2>
 
     <!-- Manual Area Input -->
 <input
   id="landmark"
   type="text"
+   data-placeholder="enterLandmark"
   placeholder="Enter area / landmark (near bus stop, school, park...)"
   class="w-full mb-3 rounded-lg bg-slate-900/60 border border-slate-700 p-3 focus:outline-none focus:ring-2 focus:ring-emerald-500"
 />
@@ -73,7 +92,7 @@
 <button
   onclick="getLocation()"
   class="mb-2 w-full py-2 rounded-lg bg-sky-500 hover:bg-sky-400 text-slate-900 font-semibold transition"
->
+data-lang="useLocation">
   📍 Use Current Location
 </button>
 
@@ -83,6 +102,7 @@
     <textarea
      id="description"
      rows="3"
+     data-placeholder="describeProblem"
      placeholder="Describe the garbage problem..."
      class="w-full rounded-lg bg-slate-900/60 border border-slate-700 p-3 ..."
     ></textarea>
@@ -100,12 +120,12 @@
     <button
       onclick="submitReport()"
       class="mt-6 w-full py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-900 font-semibold transition"
-    >
+    data-lang="Report2">
       Submit Report
     </button>
 
     <!-- Loading -->
-    <div id="loading" class="hidden mt-4 text-center text-emerald-400 animate-pulse">
+    <div id="loading" class="hidden mt-4 text-center text-emerald-400 animate-pulse" data-lang="Report3">
       Submitting your report...
     </div>
 
@@ -121,7 +141,7 @@
   </section>
   <!-- Citizen Report Status Section -->
 <section class="glass w-full max-w-3xl mt-10 rounded-2xl p-6">
-  <h2 class="text-xl font-semibold mb-4">Your Reports</h2>
+  <h2 class="text-xl font-semibold mb-4" data-lang="yourReports">Your Reports</h2>
 
   <div id="myReports" class="space-y-4">
     <p class="text-slate-400 text-center">Loading your reports...</p>
@@ -242,9 +262,12 @@ window.logout = function () {
     .catch(err => alert(err.message));
 };
 
-/* ---------- AUTH STATE ---------- */
 onAuthStateChanged(auth, async (user) => {
   if (!user) return;
+
+  // 👇 REQUIRED for language system
+  window.currentUser = user;
+  loadUserLanguage(user);   // ✅ CORRECT
 
   // 🔹 FIX 1: Handle Google Users who aren't in the "users" database yet
   const userSnap = await get(ref(database, "users/" + user.uid));
@@ -369,36 +392,42 @@ window.submitReport = async function () {
 
       <!-- LEFT -->
       <div class="text-left">
-        <h2 class="text-emerald-400 text-xl font-semibold mb-2">
+        <h2 class="text-emerald-400 text-xl font-semibold mb-2" data-lang="smart">
           ♻️ Smart-Garbage
         </h2>
-        <p class="text-sm mb-4">
+        <p class="text-sm mb-4" data-lang="line">
           Building cleaner and smarter cities together.
         </p>
 
-        <h3 class="font-semibold mb-2">Follow Us</h3>
-        <p>Instagram</p>
-        <p>Twitter</p>
-        <p>Facebook</p>
+        <h3 class="font-semibold mb-2" data-lang="followUs">Follow Us</h3>
+        <p data-lang="Follow1">Instagram</p>
+        <p data-lang="Follow2">Twitter</p>
+        <p data-lang="Follow3">Facebook</p>
       </div>
 
       <!-- RIGHT -->
       <div class="text-right">
-        <h3 class="font-semibold mb-2">Contact Us</h3>
-        <p>📍 3rd Cross,5th Main Road, J.P Nagar, Bengaluru, Karnataka, India</p>
-        <p>📞 +91 98765 43210 - Anuj P</p>
-        <p>✉️ smartgarbage@gmail.com</p>
+        <h3 class="font-semibold mb-2" data-lang="contactUs">Contact Us</h3>
+        <p data-lang="address">📍 3rd Cross,5th Main Road, J.P Nagar, Bengaluru, Karnataka, India</p>
+        <p data-lang="phoneno">📞 +91 98765 43210 - Anuj P</p>
+        <p data-lang="emailadd">✉️ smartgarbage@gmail.com</p>
       </div>
 
     </div>
 
     <!-- BOTTOM -->
-    <div class="border-t border-white/30 mt-8 pt-4 text-center text-sm">
+    <div class="border-t border-white/30 mt-8 pt-4 text-center text-sm" data-lang="rights">
       © 2026 Smart-Garbage. All rights reserved.
     </div>
 
   </div>
 </footer>
+
+
+
+<script src="lang.js"></script>
+
+
 
 
 </body>

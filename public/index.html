@@ -14,20 +14,20 @@
         <!-- AUTH SECTION -->
         <div id="authSection">
             
-            <h2>Smart - Garbage</h2>
+            <h2 data-lang="appName"> ♻️ Smart - Garbage</h2>
 
-            <input type="email" id="email" placeholder="Email" />
-            <input type="password" id="password" placeholder="Password" />
+            <input type="email" id="email" data-placeholder="email" placeholder="Email" />
+            <input type="password" id="password" data-placeholder="password" placeholder="Password" />
               
             <select id="role">
-              <option value="" disabled selected>Select Role</option>
-              <option value="citizen">Citizen</option>
-              <option value="collector">Collector</option>
-              <option value="admin">Admin</option>
+              <option value="" disabled selected data-lang="select">Select Role</option>
+              <option value="citizen" data-lang="citizen">Citizen</option>
+              <option value="collector" data-lang="collector">Collector</option>
+              <option value="admin" data-lang="admin">Admin</option>
             </select>
-            <button onclick="signUp()">Sign Up</button>
-            <button onclick="login()">Login</button>
-            <button onclick="googleLogin()">Sign in with Google</button>
+            <button data-lang="signup" onclick="signUp()">Sign Up</button>
+            <button data-lang="login" onclick="login()">Login</button>
+            <button data-lang="googleSignIn" onclick="googleLogin()">Sign in with Google</button>
 
 
             <p id="message"></p>
@@ -51,30 +51,43 @@
 
     <!-- LEFT -->
     <div class="footer-left">
-      <h2>♻️ Smart-Garbage</h2>
-      <p>Building cleaner and smarter cities together.</p>
+      <h2 data-lang="smart">♻️ Smart-Garbage</h2>
+      <p data-lang="line">Building cleaner and smarter cities together.</p>
 
-      <h3>Follow Us</h3>
-      <p>Instagram</p>
-      <p>Twitter</p>
-      <p>Facebook</p>
+      <h3 data-lang="followUs">Follow Us</h3>
+      <p data-lang="Follow1">Instagram</p>
+      <p data-lang="Follow2">Twitter</p>
+      <p data-lang="Follow3">Facebook</p>
     </div>
 
     <!-- RIGHT -->
     <div class="footer-right">
-      <h3>Contact Us</h3>
-      <p>📍 3rd Cross,5th Main Road, J.P Nagar, Bengaluru, Karnataka, India</p>
-      <p>📞 +91 98765 43210 - Anuj P</p>
-      <p>✉️ smartgarbage@gmail.com</p>
+      <h3 data-lang="contactUs">Contact Us</h3>
+      <p data-lang="address">📍 3rd Cross,5th Main Road, J.P Nagar, Bengaluru, Karnataka, India</p>
+      <p data-lang="phoneno">📞 +91 98765 43210 - Anuj P</p>
+      <p data-lang="emailadd">✉️ smartgarbage@gmail.com</p>
     </div>
 
   </div>
 
-    <div class="footer-bottom">
+    <div class="footer-bottom" data-lang="rights">
        © 2026 Smart-Garbage. All rights reserved.
     </div>
   </div>
 </footer>
+
+<div style="position:fixed; top:20px; right:20px; z-index:50">
+  <button onclick="setLanguage('en')">English</button>
+  <button onclick="setLanguage('kn')">ಕನ್ನಡ</button>
+</div>
+
+<script type="module" src="lang.js"></script>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    loadLanguage();
+  });
+</script>
 
 </body>
 

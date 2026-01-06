@@ -151,7 +151,9 @@ window.googleLogin = function () {
 
 // ================= LOGOUT =================
 window.logout = function () {
+  resetLanguage();
   signOut(auth).then(() => {
     window.location.href = "index.html";
   });
 };
+
