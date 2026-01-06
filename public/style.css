@@ -2,19 +2,26 @@ body {
     font-family: Arial, sans-serif;
     background: #0f172a;
     color: white;
+    margin: 0;
+    min-height: 100vh;
     display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
+    flex-direction: column; /* VERY IMPORTANT */
 }
 
 .container {
+    flex: 1; /* pushes footer down */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+ }
+
+   #authSection {
     background: #1e293b;
     padding: 30px;
     border-radius: 10px;
     width: 300px;
     text-align: center;
-}
+ }
 
 input {
     width: 90%;
@@ -51,4 +58,14 @@ select {
     border-radius: 6px;
     border: none;
     font-size: 16px;
+}
+
+/* Fix footer alignment on index page */
+.footer-inner {
+  max-width: 1100px;
+  margin: 0 auto;              /* centers footer content */
+  padding: 40px 60px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
 }
