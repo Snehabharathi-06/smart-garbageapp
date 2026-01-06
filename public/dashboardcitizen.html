@@ -111,11 +111,32 @@ data-lang="useLocation">
     <label class="block mt-4 mb-2 text-sm text-slate-300">
       Upload Garbage Photo
     </label>
-    <input
-      type="file"
-      accept="image/*"
-      class="w-full text-sm text-slate-300 file:bg-emerald-500 file:border-none file:px-4 file:py-2 file:rounded-lg file:text-slate-900 file:font-semibold hover:file:bg-emerald-400"
-    />
+    <!-- CAMERA START -->
+<video id="camera" class="w-full rounded-lg hidden" autoplay></video>
+
+<img id="preview" class="w-full rounded-lg hidden mt-2" />
+
+<div class="flex gap-3 mt-2">
+  <button
+    type="button"
+    onclick="openCamera()"
+    class="px-4 py-2 bg-sky-500 rounded-lg font-semibold"
+  >
+    📷 Open Camera
+  </button>
+
+  <button
+    type="button"
+    onclick="capturePhoto()"
+    class="px-4 py-2 bg-emerald-500 rounded-lg font-semibold"
+  >
+    📸 Capture
+  </button>
+</div>
+
+<canvas id="canvas" class="hidden"></canvas>
+<!-- CAMERA END -->
+
 
     <button
       onclick="submitReport()"
@@ -230,6 +251,7 @@ function getLocation() {
 }
 
 </script>
+
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
@@ -383,6 +405,44 @@ window.submitReport = async function () {
   }
 };
 </script>
+<script>
+let cameraStream = null;
+
+async function openCamera() {
+  const video = document.getElementById("camera");
+  const preview = document.getElementById("preview");
+
+  preview.classList.add("hidden");
+
+  try {
+    cameraStream = await navigator.mediaDevices.getUserMedia({ video: true });
+    video.srcObject = cameraStream;
+    video.classList.remove("hidden");
+  } catch (err) {
+    alert("Camera not accessible!");
+  }
+}
+
+function capturePhoto() {
+  const video = document.getElementById("camera");
+  const canvas = document.getElementById("canvas");
+  const preview = document.getElementById("preview");
+
+  const ctx = canvas.getContext("2d");
+
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+
+  ctx.drawImage(video, 0, 0);
+
+  preview.src = canvas.toDataURL("image/png");
+  preview.classList.remove("hidden");
+}
+</script>
+
+</body>
+</html>
+
 
 <footer class="w-full bg-black/60 mt-20">
   <div class="max-w-6xl mx-auto px-10 py-10">
@@ -429,6 +489,42 @@ window.submitReport = async function () {
 
 
 
+<script>
+let cameraStream = null;
+
+async function openCamera() {
+  const video = document.getElementById("camera");
+  const preview = document.getElementById("preview");
+
+  preview.classList.add("hidden");
+
+  try {
+    cameraStream = await navigator.mediaDevices.getUserMedia({ video: true });
+
+    video.srcObject = cameraStream;
+    video.classList.remove("hidden");
+
+  } catch (err) {
+    alert("Camera not accessible!");
+  }
+}
+
+function capturePhoto() {
+  const video = document.getElementById("camera");
+  const canvas = document.getElementById("canvas");
+  const preview = document.getElementById("preview");
+
+  const ctx = canvas.getContext("2d");
+
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+
+  ctx.drawImage(video, 0, 0);
+
+  preview.src = canvas.toDataURL("image/png");
+  preview.classList.remove("hidden");
+}
+</script>
 
 </body>
 </html>
