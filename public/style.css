@@ -15,6 +15,11 @@ body {
     align-items: center;
  }
 
+ .app-logo {
+  height: 80px;       /* adjust size here */
+  width: auto;
+}
+
    #authSection {
     background: #1e293b;
     padding: 30px;

@@ -3,18 +3,29 @@
 
 <head>
     <meta charset="UTF-8" />
-    <title>Firebase Auth Demo</title>
+    <title>Smart - Garbage</title>
     <link rel="stylesheet" href="style.css">
 </head>
 
-<body>
+<body> 
+
 
     <div class="container">
 
         <!-- AUTH SECTION -->
         <div id="authSection">
             
-            <h2 data-lang="appName"> ♻️ Smart - Garbage</h2>
+            <!-- LOGO -->
+<div class="logo-container">
+  <img
+    src="images/logo.png"
+    alt="Smart Garbage Logo"
+    class="app-logo"
+  />
+</div>
+
+<h2 data-lang="appName">Smart - Garbage</h2>
+
 
             <input type="email" id="email" data-placeholder="email" placeholder="Email" />
             <input type="password" id="password" data-placeholder="password" placeholder="Password" />
@@ -23,7 +34,7 @@
               <option value="" disabled selected data-lang="select">Select Role</option>
               <option value="citizen" data-lang="citizen">Citizen</option>
               <option value="collector" data-lang="collector">Collector</option>
-              <option value="admin" data-lang="admin">Admin</option>
+              
             </select>
             <button data-lang="signup" onclick="signUp()">Sign Up</button>
             <button data-lang="login" onclick="login()">Login</button>

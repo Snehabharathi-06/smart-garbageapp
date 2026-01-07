@@ -61,25 +61,47 @@ window.googleLogin = async function () {
 };
 
 // ================= AUTH STATE HANDLER =================
+function generateCitizenId(uid) {
+  return "CIT-" + uid.substring(0, 6).toUpperCase();
+}
 onAuthStateChanged(auth, async (user) => {
   if (!user) return;
 
-  const role = localStorage.getItem("pendingRole") || "citizen";
+  const pendingRole = localStorage.getItem("pendingRole");
   localStorage.removeItem("pendingRole");
 
   const userRef = ref(database, "users/" + user.uid);
   const snap = await get(userRef);
 
-  if (!snap.exists()) {
-    await set(userRef, {
-      email: user.email,
-      role: role
-    });
-    redirectByRole(role);
-  } else {
-    redirectByRole(snap.val().role || "citizen");
+  // ✅ Decide role SAFELY
+  let role = "citizen";
+  if (snap.exists() && snap.val().role) {
+    role = snap.val().role;
+  } else if (pendingRole) {
+    role = pendingRole;
   }
+
+  // ✅ Build data to ensure citizenId
+  const newData = {
+    email: user.email,
+    role: role
+  };
+
+  if (role === "citizen") {
+    newData.citizenId = generateCitizenId(user.uid);
+  }
+
+  // ✅ Write if missing OR citizenId missing
+  if (!snap.exists() || (role === "citizen" && !snap.val()?.citizenId)) {
+    await set(userRef, {
+      ...(snap.exists() ? snap.val() : {}),
+      ...newData
+    });
+  }
+
+  redirectByRole(role);
 });
+
 
 // ================= EMAIL LOGIN =================
 window.login = function () {

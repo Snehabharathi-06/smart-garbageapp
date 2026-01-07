@@ -108,7 +108,7 @@ data-lang="useLocation">
     ></textarea>
 
 
-   <label class="block mt-4 mb-2 text-sm text-slate-300">
+   <label class="block mt-4 mb-2 text-sm text-slate-300" data-lang="update">
   Upload Garbage Photo
 </label>
 
@@ -116,22 +116,22 @@ data-lang="useLocation">
   <!-- Camera -->
   <button
     onclick="openCamera()"
-    class="px-4 py-2 rounded-lg bg-sky-500 hover:bg-sky-400 text-slate-900 font-semibold"
-  >
+    class="px-4 py-2 rounded-lg bg-sky-500 hover:bg-sky-400 text-slate-900 font-semibold" 
+  data-lang="camera">
     📷 Open Camera
   </button>
 
   <button
     onclick="capturePhoto()"
     class="px-4 py-2 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-900 font-semibold"
-  >
+  data-lang="capture">
     📸 Capture
   </button>
 
   <!-- Upload -->
   <label
     class="px-4 py-2 rounded-lg bg-indigo-500 hover:bg-indigo-400 text-slate-900 font-semibold cursor-pointer"
-  >
+   data-lang="upload">
     📂 Upload File
     <input
       type="file"
@@ -367,16 +367,10 @@ onAuthStateChanged(auth, async (user) => {
   const citizenIdElement = document.getElementById("citizenId");
 
   if (userSnap.exists()) {
-    citizenIdElement.innerText = "Citizen ID: " + userSnap.val().citizenNumber;
+    citizenIdElement.innerText = "Citizen ID: " + userSnap.val().citizenId;
   } else {
     // If Google user, assign a temporary display ID so it's not 'undefined'
     citizenIdElement.innerText = "Logged in as: " + user.email;
-    
-    // Optional: Auto-create a record for them in the database
-    await set(ref(database, "users/" + user.uid), {
-        citizenNumber: "G-" + Math.floor(1000 + Math.random() * 9000),
-        email: user.email
-    });
   }
 
   // Load reports

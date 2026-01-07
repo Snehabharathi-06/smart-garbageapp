@@ -30,7 +30,6 @@
   </style>
 </head>
 
-<body class="text-white min-h-screen flex flex-col items-center justify-center px-6">
 
   <!-- Three.js Background -->
   <canvas id="bg"></canvas>
@@ -210,28 +209,36 @@ onValue(ref(database, "reports"), (snapshot) => {
     card.className = "glass p-6 rounded-xl";
 
     card.innerHTML = `
-      <p><b>Citizen ID:</b> ${r.citizenNumber}</p>
-      <p><b>Email:</b> ${r.citizenEmail}</p>
-      <p><b>Landmark:</b> ${r.landmark}</p>
+  <p><b>Citizen ID:</b> ${r.citizenNumber}</p>
+  <p><b>Email:</b> ${r.citizenEmail}</p>
+  <p><b>Landmark:</b> ${r.landmark}</p>
 
-      ${
-        r.mapLink && r.mapLink !== "Manual area only"
-          ? `<a href="${r.mapLink}" target="_blank" class="text-sky-400 underline">
-               📍 Open in Google Maps
-             </a>`
-          : `<p class="text-slate-400">Manual area only</p>`
-      }
+  <p class="mt-2">
+    <b>Description:</b><br>
+    <span class="text-slate-300">
+      ${r.description || "No description provided"}
+    </span>
+  </p>
 
-      <p class="mt-2"><b>Status:</b>
-        <span class="text-yellow-400">${r.status}</span>
-      </p>
+  ${
+    r.mapLink && r.mapLink !== "Manual area only"
+      ? `<a href="${r.mapLink}" target="_blank" class="text-sky-400 underline mt-2 inline-block">
+           📍 Open in Google Maps
+         </a>`
+      : `<p class="text-slate-400 mt-2">Manual area only</p>`
+  }
 
-      <button
-        onclick="markResolved('${reportId}')"
-        class="mt-4 w-full py-2 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-900 font-semibold">
-        Mark as Resolved
-      </button>
-    `;
+  <p class="mt-2"><b>Status:</b>
+    <span class="text-yellow-400">${r.status}</span>
+  </p>
+
+  <button
+    onclick="markResolved('${reportId}')"
+    class="mt-4 w-full py-2 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-900 font-semibold">
+    Mark as Resolved
+  </button>
+`;
+
 
     container.appendChild(card);
   });

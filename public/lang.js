@@ -1,7 +1,7 @@
 // ================= TRANSLATIONS =================
 const translations = {
   en: {
-    appName: " ♻️ Smart - Garbage",
+    appName: "  Smart - Garbage",
     appName1:"Smart - Garbage Collector Dashboard",
     appName2:"Smart - Garbage Citizen Dashboard",
     tagline: "Report garbage issues in your area and help keep the city clean and sustainable.",
@@ -35,12 +35,16 @@ const translations = {
     select:"Select Role",
     citizen:"Citizen",
     collector:"Collector",
-    admin:"Admin"
-    
+    admin:"Admin",
+    update:"Upload Garbage Photo",
+    camera:"📷 Open Camera",
+    capture:"📸 Capture",
+    upload:"📂 Upload File",
+    citizenId:"Citizen Id"
   },
 
   kn: {
-    appName: " ♻️ ಸ್ಮಾರ್ಟ್ ಗಾರ್ಬೇಜ್",
+    appName: "  ಸ್ಮಾರ್ಟ್ ಗಾರ್ಬೇಜ್",
     appName1: "ಸ್ಮಾರ್ಟ್ - ಕಸ ಸಂಗ್ರಾಹಕ ಡ್ಯಾಶ್‌ಬೋರ್ಡ್",
     appName2:"ಸ್ಮಾರ್ಟ್ - ಗಾರ್ಬೇಜ್ ಸಿಟಿಜನ್ ಡ್ಯಾಶ್‌ಬೋರ್ಡ್",
     tagline: "ನಿಮ್ಮ ಪ್ರದೇಶದಲ್ಲಿನ ಕಸದ ಸಮಸ್ಯೆಗಳನ್ನು ವರದಿ ಮಾಡಿ ಮತ್ತು ನಗರವನ್ನು ಸ್ವಚ್ಛವಾಗಿರಿಸಿ.",
@@ -74,7 +78,12 @@ const translations = {
     select:"ಪಾತ್ರವನ್ನು ಆಯ್ಕೆಮಾಡಿ",
     citizen:"ನಾಗರಿಕ",
     collector:"ಕಲೆಕ್ಟರ್",
-    admin:"ನಿರ್ವಾಹಕ"
+    admin:"ನಿರ್ವಾಹಕ",
+    update:"ಕಸದ ಫೋಟೋವನ್ನು ಅಪ್‌ಲೋಡ್ ಮಾಡಿ",
+    camera:"📷 ಕ್ಯಾಮೆರಾ ತೆರೆಯಿರಿ",
+    capture:"📸 ಸೆರೆಹಿಡಿಯಿರಿ",
+    upload:"📂 ಫೈಲ್ ಅಪ್‌ಲೋಡ್ ಮಾಡಿ",
+    citizenId:"ನಾಗರಿಕ ಐಡಿ"
   }
 };
 
