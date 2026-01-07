@@ -6,7 +6,8 @@ import {
   signInWithEmailAndPassword,
   signOut,
   GoogleAuthProvider,
-  signInWithPopup
+  signInWithRedirect,
+  getRedirectResult
 } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
 
 import {
@@ -27,133 +28,134 @@ const firebaseConfig = {
   storageBucket: "smart-garbageapp.firebasestorage.app",
   messagingSenderId: "109287159774",
   appId: "1:109287159774:web:48233baca941db42f78f4f"
-  
-
 };
 
-// ================= INITIALIZE FIREBASE =================
+// ================= INIT =================
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const database = getDatabase(app);
 const provider = new GoogleAuthProvider();
 
-
-
-// ================= REDIRECT FUNCTION =================
+// ================= ROLE REDIRECT =================
 function redirectByRole(role) {
   if (role === "citizen") {
-    window.location.href = "dashboardcitizen.html";
+    window.location.replace("dashboardcitizen.html");
   } else if (role === "collector") {
-    window.location.href = "dashboardcollector.html";
-  } else if (role === "admin") {
-    window.location.href = "dashboardadmin.html";
+    window.location.replace("dashboardcollector.html");
   } else {
-    document.getElementById("message").innerText = "Invalid role";
+    window.location.replace("index.html");
   }
 }
 
-// ================= SIGN UP =================
-window.signUp = function () {
-  alert("SIGNUP FUNCTION STARTED");
-  console.log("NEW SIGNUP FUNCTION RUNNING");
+// ================= HANDLE GOOGLE REDIRECT RESULT =================
+getRedirectResult(auth)
+  .then(async (result) => {
+    if (!result) return;
 
-  const email = document.getElementById("email").value;
-  const password = document.getElementById("password").value;
-  const role = document.getElementById("role").value;
+    const user = result.user;
+    const role = localStorage.getItem("pendingRole") || "citizen";
+    localStorage.removeItem("pendingRole");
 
-  if (!role) {
-    document.getElementById("message").innerText = "Please select a role";
-    return;
-  }
+    const userRef = ref(database, "users/" + user.uid);
+    const snap = await get(userRef);
 
-  createUserWithEmailAndPassword(auth, email, password)
-    .then(async (userCredential) => {
-      const user = userCredential.user;
-      const db = getDatabase();
-
-      let userData = {
+    if (!snap.exists()) {
+      await set(userRef, {
         email: user.email,
         role: role
-      };
+      });
+      redirectByRole(role);
+    } else {
+      redirectByRole(snap.val().role);
+    }
+  })
+  .catch((err) => {
+    console.error(err);
+    document.getElementById("message").innerText = err.message;
+  });
 
-      // ✅ REALTIME DATABASE AUTO-INCREMENT
-      if (role === "citizen") {
-        const counterRef = ref(db, "meta/citizenCounter");
+// ================= GOOGLE LOGIN =================
+window.googleLogin = async function () {
+  const role = document.getElementById("role").value || "citizen";
+  localStorage.setItem("pendingRole", role);
 
-        const result = await runTransaction(counterRef, (current) => {
-          return (current || 1000) + 1;
-        });
+  const isLocal =
+    location.hostname === "localhost" ||
+    location.hostname === "127.0.0.1";
 
-        userData.citizenNumber = `CIT-${result.snapshot.val()}`;
+  try {
+    if (isLocal) {
+      // ✅ LIVE SERVER → POPUP
+      const { signInWithPopup } = await import(
+        "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js"
+      );
+
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
+
+      const userRef = ref(database, "users/" + user.uid);
+      const snap = await get(userRef);
+
+      if (!snap.exists()) {
+        await set(userRef, { email: user.email, role });
       }
 
-      await set(ref(db, "users/" + user.uid), userData);
-
       redirectByRole(role);
-    })
-    .catch((error) => {
-      document.getElementById("message").innerText = error.message;
-    });
+    } else {
+      // ✅ DEPLOYED → REDIRECT
+      signInWithRedirect(auth, provider);
+    }
+  } catch (err) {
+    console.error(err);
+    document.getElementById("message").innerText = err.message;
+  }
 };
 
 
-
-
-// ================= LOGIN =================
+// ================= EMAIL LOGIN =================
 window.login = function () {
   const email = document.getElementById("email").value;
   const password = document.getElementById("password").value;
 
   signInWithEmailAndPassword(auth, email, password)
-    .then((userCredential) => {
-      const user = userCredential.user;
-
-      const dbRef = ref(database);
-      get(child(dbRef, "users/" + user.uid))
-        .then((snapshot) => {
-          if (snapshot.exists()) {
-            redirectByRole(snapshot.val().role);
-          } else {
-            document.getElementById("message").innerText = "Role not found in database";
-          }
+    .then((cred) => {
+      get(child(ref(database), "users/" + cred.user.uid))
+        .then((snap) => {
+          if (snap.exists()) redirectByRole(snap.val().role);
         });
     })
-    .catch(error => {
-      document.getElementById("message").innerText = error.message;
+    .catch(err => {
+      document.getElementById("message").innerText = err.message;
     });
 };
 
-// ================= GOOGLE LOGIN =================
-window.googleLogin = function () {
-  const selectedRole = document.getElementById("role").value || "citizen";
+// ================= SIGNUP =================
+window.signUp = function () {
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
+  const role = document.getElementById("role").value;
 
-  signInWithPopup(auth, provider)
-    .then((result) => {
-      const user = result.user;
-      const userRef = ref(database, "users/" + user.uid);
+  if (!role) {
+    document.getElementById("message").innerText = "Select role";
+    return;
+  }
 
-      get(userRef).then((snapshot) => {
-        if (!snapshot.exists()) {
-          set(userRef, {
-            email: user.email,
-            role: selectedRole
-          });
-          redirectByRole(selectedRole);
-        } else {
-          redirectByRole(snapshot.val().role);
-        }
+  createUserWithEmailAndPassword(auth, email, password)
+    .then(async (cred) => {
+      await set(ref(database, "users/" + cred.user.uid), {
+        email,
+        role
       });
+      redirectByRole(role);
     })
-    .catch(error => {
-      document.getElementById("message").innerText = error.message;
+    .catch(err => {
+      document.getElementById("message").innerText = err.message;
     });
 };
 
 // ================= LOGOUT =================
 window.logout = function () {
-  resetLanguage();
   signOut(auth).then(() => {
-    window.location.href = "index.html";
+    window.location.replace("index.html");
   });
 };
-
