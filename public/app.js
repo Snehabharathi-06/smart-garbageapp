@@ -6,8 +6,8 @@ import {
   signInWithEmailAndPassword,
   signOut,
   GoogleAuthProvider,
-  signInWithRedirect,
-  getRedirectResult
+  signInWithPopup,
+  onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
 
 import {
@@ -47,70 +47,39 @@ function redirectByRole(role) {
   }
 }
 
-// ================= HANDLE GOOGLE REDIRECT RESULT =================
-getRedirectResult(auth)
-  .then(async (result) => {
-    if (!result) return;
-
-    const user = result.user;
-    const role = localStorage.getItem("pendingRole") || "citizen";
-    localStorage.removeItem("pendingRole");
-
-    const userRef = ref(database, "users/" + user.uid);
-    const snap = await get(userRef);
-
-    if (!snap.exists()) {
-      await set(userRef, {
-        email: user.email,
-        role: role
-      });
-      redirectByRole(role);
-    } else {
-      redirectByRole(snap.val().role);
-    }
-  })
-  .catch((err) => {
-    console.error(err);
-    document.getElementById("message").innerText = err.message;
-  });
-
-// ================= GOOGLE LOGIN =================
+// ================= GOOGLE LOGIN (POPUP ONLY) =================
 window.googleLogin = async function () {
   const role = document.getElementById("role").value || "citizen";
   localStorage.setItem("pendingRole", role);
 
-  const isLocal =
-    location.hostname === "localhost" ||
-    location.hostname === "127.0.0.1";
-
   try {
-    if (isLocal) {
-      // ✅ LIVE SERVER → POPUP
-      const { signInWithPopup } = await import(
-        "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js"
-      );
-
-      const result = await signInWithPopup(auth, provider);
-      const user = result.user;
-
-      const userRef = ref(database, "users/" + user.uid);
-      const snap = await get(userRef);
-
-      if (!snap.exists()) {
-        await set(userRef, { email: user.email, role });
-      }
-
-      redirectByRole(role);
-    } else {
-      // ✅ DEPLOYED → REDIRECT
-      signInWithRedirect(auth, provider);
-    }
+    await signInWithPopup(auth, provider);
   } catch (err) {
     console.error(err);
     document.getElementById("message").innerText = err.message;
   }
 };
 
+// ================= AUTH STATE HANDLER =================
+onAuthStateChanged(auth, async (user) => {
+  if (!user) return;
+
+  const role = localStorage.getItem("pendingRole") || "citizen";
+  localStorage.removeItem("pendingRole");
+
+  const userRef = ref(database, "users/" + user.uid);
+  const snap = await get(userRef);
+
+  if (!snap.exists()) {
+    await set(userRef, {
+      email: user.email,
+      role: role
+    });
+    redirectByRole(role);
+  } else {
+    redirectByRole(snap.val().role || "citizen");
+  }
+});
 
 // ================= EMAIL LOGIN =================
 window.login = function () {
@@ -121,7 +90,9 @@ window.login = function () {
     .then((cred) => {
       get(child(ref(database), "users/" + cred.user.uid))
         .then((snap) => {
-          if (snap.exists()) redirectByRole(snap.val().role);
+          if (snap.exists()) {
+            redirectByRole(snap.val().role);
+          }
         });
     })
     .catch(err => {
@@ -129,7 +100,7 @@ window.login = function () {
     });
 };
 
-// ================= SIGNUP =================
+// ================= SIGN UP =================
 window.signUp = function () {
   const email = document.getElementById("email").value;
   const password = document.getElementById("password").value;
