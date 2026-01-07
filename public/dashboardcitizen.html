@@ -108,34 +108,53 @@ data-lang="useLocation">
     ></textarea>
 
 
-    <label class="block mt-4 mb-2 text-sm text-slate-300">
-      Upload Garbage Photo
-    </label>
-    <!-- CAMERA START -->
-<video id="camera" class="w-full rounded-lg hidden" autoplay></video>
+   <label class="block mt-4 mb-2 text-sm text-slate-300">
+  Upload Garbage Photo
+</label>
 
-<img id="preview" class="w-full rounded-lg hidden mt-2" />
-
-<div class="flex gap-3 mt-2">
+<div class="flex flex-wrap gap-3 mb-4">
+  <!-- Camera -->
   <button
-    type="button"
     onclick="openCamera()"
-    class="px-4 py-2 bg-sky-500 rounded-lg font-semibold"
+    class="px-4 py-2 rounded-lg bg-sky-500 hover:bg-sky-400 text-slate-900 font-semibold"
   >
     📷 Open Camera
   </button>
 
   <button
-    type="button"
     onclick="capturePhoto()"
-    class="px-4 py-2 bg-emerald-500 rounded-lg font-semibold"
+    class="px-4 py-2 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-900 font-semibold"
   >
     📸 Capture
   </button>
+
+  <!-- Upload -->
+  <label
+    class="px-4 py-2 rounded-lg bg-indigo-500 hover:bg-indigo-400 text-slate-900 font-semibold cursor-pointer"
+  >
+    📂 Upload File
+    <input
+      type="file"
+      accept="image/*"
+      onchange="handleFileUpload(event)"
+      class="hidden"
+    />
+  </label>
 </div>
 
-<canvas id="canvas" class="hidden"></canvas>
-<!-- CAMERA END -->
+<!-- Camera preview -->
+<video id="camera" autoplay playsinline class="hidden w-full rounded-lg mb-3"></video>
+
+<!-- Canvas (hidden) -->
+<canvas id="photoCanvas" class="hidden"></canvas>
+
+<!-- Image preview -->
+<img
+  id="previewImage"
+  class="hidden w-full rounded-lg border border-slate-600 mt-2"
+/>
+
+
 
 
     <button
@@ -251,6 +270,58 @@ function getLocation() {
 }
 
 </script>
+
+<script>
+let cameraStream = null;
+let capturedImageBlob = null;
+
+/* ---------- CAMERA ---------- */
+async function openCamera() {
+  const video = document.getElementById("camera");
+  video.classList.remove("hidden");
+
+  cameraStream = await navigator.mediaDevices.getUserMedia({
+    video: { facingMode: "environment" },
+    audio: false
+  });
+
+  video.srcObject = cameraStream;
+}
+
+function capturePhoto() {
+  const video = document.getElementById("camera");
+  const canvas = document.getElementById("photoCanvas");
+  const preview = document.getElementById("previewImage");
+
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+
+  const ctx = canvas.getContext("2d");
+  ctx.drawImage(video, 0, 0);
+
+  canvas.toBlob(blob => {
+    capturedImageBlob = blob;
+    preview.src = URL.createObjectURL(blob);
+    preview.classList.remove("hidden");
+  }, "image/jpeg");
+
+  cameraStream.getTracks().forEach(track => track.stop());
+  video.classList.add("hidden");
+}
+
+/* ---------- FILE UPLOAD ---------- */
+function handleFileUpload(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  capturedImageBlob = file;
+
+  const preview = document.getElementById("previewImage");
+  preview.src = URL.createObjectURL(file);
+  preview.classList.remove("hidden");
+}
+</script>
+
 
 
 <script type="module">
@@ -370,9 +441,15 @@ window.submitReport = async function () {
     const userSnap = await get(ref(database, "users/" + user.uid));
     
     // 🔹 FIX 2: Default to 'GOOGLE_USER' instead of letting it break or show 'undefined'
-    const citizenNumber = userSnap.exists() 
-      ? userSnap.val().citizenNumber 
-      : "GOOGLE_USER";
+    let citizenNumber = "GUEST";
+
+if (userSnap.exists() && userSnap.val().citizenNumber) {
+  citizenNumber = userSnap.val().citizenNumber;
+} else {
+  // fallback for Google users
+  citizenNumber = "G-" + user.uid.substring(0, 6);
+}
+
 
     // 🔹 FIX 3: Corrected the Map Link Syntax (template literals use ${} not 0{})
     const finalMapLink = (userLatitude && userLongitude)
@@ -380,14 +457,14 @@ window.submitReport = async function () {
         : "Manual area only";
 
     await push(ref(database, "reports"), {
-      citizenEmail: user.email,
-      citizenNumber: citizenNumber,
-      landmark: landmark || "Not provided",
-      description: description || "Not provided",
-      mapLink: finalMapLink,
-      status: "pending",
-      timestamp: Date.now()
-    });
+  citizenEmail: user.email,
+  citizenNumber: citizenNumber,   // ✅ always defined
+  landmark: landmark || "Not provided",
+  description: description || "Not provided",
+  mapLink: finalMapLink,
+  status: "pending",
+  timestamp: Date.now()
+});
 
     loading.classList.add("hidden");
     output.classList.remove("hidden");
@@ -405,44 +482,6 @@ window.submitReport = async function () {
   }
 };
 </script>
-<script>
-let cameraStream = null;
-
-async function openCamera() {
-  const video = document.getElementById("camera");
-  const preview = document.getElementById("preview");
-
-  preview.classList.add("hidden");
-
-  try {
-    cameraStream = await navigator.mediaDevices.getUserMedia({ video: true });
-    video.srcObject = cameraStream;
-    video.classList.remove("hidden");
-  } catch (err) {
-    alert("Camera not accessible!");
-  }
-}
-
-function capturePhoto() {
-  const video = document.getElementById("camera");
-  const canvas = document.getElementById("canvas");
-  const preview = document.getElementById("preview");
-
-  const ctx = canvas.getContext("2d");
-
-  canvas.width = video.videoWidth;
-  canvas.height = video.videoHeight;
-
-  ctx.drawImage(video, 0, 0);
-
-  preview.src = canvas.toDataURL("image/png");
-  preview.classList.remove("hidden");
-}
-</script>
-
-</body>
-</html>
-
 
 <footer class="w-full bg-black/60 mt-20">
   <div class="max-w-6xl mx-auto px-10 py-10">
@@ -489,42 +528,6 @@ function capturePhoto() {
 
 
 
-<script>
-let cameraStream = null;
-
-async function openCamera() {
-  const video = document.getElementById("camera");
-  const preview = document.getElementById("preview");
-
-  preview.classList.add("hidden");
-
-  try {
-    cameraStream = await navigator.mediaDevices.getUserMedia({ video: true });
-
-    video.srcObject = cameraStream;
-    video.classList.remove("hidden");
-
-  } catch (err) {
-    alert("Camera not accessible!");
-  }
-}
-
-function capturePhoto() {
-  const video = document.getElementById("camera");
-  const canvas = document.getElementById("canvas");
-  const preview = document.getElementById("preview");
-
-  const ctx = canvas.getContext("2d");
-
-  canvas.width = video.videoWidth;
-  canvas.height = video.videoHeight;
-
-  ctx.drawImage(video, 0, 0);
-
-  preview.src = canvas.toDataURL("image/png");
-  preview.classList.remove("hidden");
-}
-</script>
 
 </body>
 </html>
