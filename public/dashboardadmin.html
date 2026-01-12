@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Smart-Garbage – Admin Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Three.js -->
+  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+
+  <style>
+    body {
+      background: radial-gradient(circle at top, #0b1220, #020617);
+      overflow-x: hidden;
+    }
+    .glass {
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(18px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+    canvas {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+    }
+  </style>
+</head>
+
+<body class="text-white min-h-screen px-6 py-10">
+
+<canvas id="bg"></canvas>
+
+<!-- HEADER -->
+<section class="text-center max-w-5xl mx-auto mb-10">
+  <h1 class="text-4xl md:text-5xl font-extrabold mb-3">
+    Smart-Garbage Admin Dashboard
+  </h1>
+  <p class="text-slate-300">
+    Monitor, assign, and track garbage collection activities
+  </p>
+
+  <button
+    onclick="logout()"
+    class="mt-5 px-6 py-2 rounded-xl bg-red-500 hover:bg-red-400 text-slate-900 font-semibold"
+  >
+    Logout
+  </button>
+</section>
+
+<!-- STATS -->
+<section class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto mb-10">
+  <div class="glass p-5 rounded-xl text-center">
+    <h2 class="text-lg">Total Reports</h2>
+    <p id="totalCount" class="text-3xl font-bold mt-2">0</p>
+  </div>
+  <div class="glass p-5 rounded-xl text-center">
+    <h2 class="text-lg">Pending</h2>
+    <p id="pendingCount" class="text-3xl font-bold text-yellow-400 mt-2">0</p>
+  </div>
+  <div class="glass p-5 rounded-xl text-center">
+    <h2 class="text-lg">Resolved</h2>
+    <p id="resolvedCount" class="text-3xl font-bold text-green-400 mt-2">0</p>
+  </div>
+</section>
+
+<section class="glass max-w-5xl mx-auto p-6 rounded-2xl mb-10">
+  <h2 class="text-xl font-semibold mb-4 text-center">
+    Reports Status Chart
+  </h2>
+   <!-- Chart container -->
+  <div style="height: 320px;">
+    <canvas id="statusChart"></canvas>
+  </div>
+</section>
+
+<section class="glass max-w-6xl mx-auto p-6 rounded-2xl mb-10">
+  <h2 class="text-xl font-semibold mb-4 text-center">
+    Daily Garbage Reports
+  </h2>
+
+  <div style="height: 350px;">
+    <canvas id="dailyChart"></canvas>
+  </div>
+</section>
+
+<section class="glass max-w-6xl mx-auto p-6 rounded-2xl mb-10">
+  <h2 class="text-xl font-semibold mb-4 text-center">
+    Collector Performance
+  </h2>
+
+  <div style="height: 350px;">
+    <canvas id="collectorChart"></canvas>
+  </div>
+</section>
+
+
+</section>
+
+<!-- REPORTS -->
+<section class="glass max-w-6xl mx-auto p-6 rounded-2xl">
+  <h2 class="text-xl font-semibold mb-6">All Garbage Reports</h2>
+
+    <!-- FILTER BUTTONS -->
+  <div class="flex gap-3 mb-6">
+    <button onclick="setFilter('all')"
+      class="px-4 py-1 rounded-lg bg-slate-700 hover:bg-slate-600">
+      All
+    </button>
+
+    <button onclick="setFilter('pending')"
+      class="px-4 py-1 rounded-lg bg-yellow-500/80 hover:bg-yellow-500 text-black">
+      Pending
+    </button>
+
+    <button onclick="setFilter('resolved')"
+      class="px-4 py-1 rounded-lg bg-emerald-500/80 hover:bg-emerald-500 text-black">
+      Resolved
+    </button>
+  </div>
+
+  <div id="reportsContainer" class="space-y-6"></div>
+  <p id="noReports" class="text-center text-slate-400 hidden">
+    No reports available
+  </p>
+</section>
+
+<!-- FIREBASE + LOGIC -->
+<script type="module">
+    let currentFilter = "all";
+let allReportsCache = [];
+let dailyChart;
+let collectorChart;
+let collectorsList = [];
+
+
+window.setFilter = function (filter) {
+  currentFilter = filter;
+  renderReports();
+};
+
+/* ================= DAILY BAR CHART ================= */
+function updateDailyChart(reports) {
+  const dayMap = {};
+
+  reports.forEach(r => {
+    if (!r.timestamp) return;
+    const date = new Date(r.timestamp).toLocaleDateString();
+    dayMap[date] = (dayMap[date] || 0) + 1;
+  });
+
+  const labels = Object.keys(dayMap);
+  const data = Object.values(dayMap);
+
+  const ctx = document.getElementById("dailyChart");
+
+  if (dailyChart) {
+    dailyChart.data.labels = labels;
+    dailyChart.data.datasets[0].data = data;
+    dailyChart.update();
+    return;
+  }
+
+  dailyChart = new Chart(ctx, {
+    type: "bar",
+    data: {
+      labels,
+      datasets: [{
+        label: "Reports per Day",
+        data,
+        backgroundColor: "#38bdf8"
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        x: { ticks: { color: "white" } },
+        y: { ticks: { color: "white" } }
+      },
+      plugins: {
+        legend: {
+          labels: { color: "white" }
+        }
+      }
+    }
+  });
+}
+
+function updateCollectorChart(reports) {
+  const collectorMap = {};
+
+  reports.forEach(r => {
+    if (!r.resolvedBy) return; // 🔑 USE resolvedBy
+
+    collectorMap[r.resolvedBy] =
+      (collectorMap[r.resolvedBy] || 0) + 1;
+  });
+
+  const labels = Object.keys(collectorMap).map(
+    email => email.split("@")[0]
+  );
+  const data = Object.values(collectorMap);
+
+  const ctx = document.getElementById("collectorChart");
+
+  if (collectorChart) {
+    collectorChart.data.labels = labels;
+    collectorChart.data.datasets[0].data = data;
+    collectorChart.update();
+    return;
+  }
+
+  collectorChart = new Chart(ctx, {
+    type: "bar",
+    data: {
+      labels,
+      datasets: [{
+        label: "Reports Resolved",
+        data,
+        backgroundColor: "#22c55e"
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        x: { ticks: { color: "white" } },
+        y: { ticks: { color: "white" } }
+      },
+      plugins: {
+        legend: {
+          labels: { color: "white" }
+        }
+      }
+    }
+  });
+}
+
+
+
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
+import { getDatabase, ref, onValue, update } 
+  from "https://www.gstatic.com/firebasejs/12.7.0/firebase-database.js";
+import { getAuth, signOut } 
+  from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAfF5WijTd9LbgqrIZDp3imRx36Aeg3OAg",
+  authDomain: "smart-garbageapp.firebaseapp.com",
+  databaseURL: "https://smart-garbageapp-default-rtdb.firebaseio.com",
+  projectId: "smart-garbageapp",
+  storageBucket: "smart-garbageapp.firebasestorage.app",
+  messagingSenderId: "109287159774",
+  appId: "1:109287159774:web:48233baca941db42f78f4f"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+const auth = getAuth(app);
+
+onValue(ref(db, "users"), (snapshot) => {
+  collectorsList = [];
+
+  snapshot.forEach(child => {
+    const user = child.val();
+    if (user.role === "collector") {
+      collectorsList.push(user.email);
+    }
+  });
+});
+
+
+const reportsContainer = document.getElementById("reportsContainer");
+const noReports = document.getElementById("noReports");
+
+const totalCount = document.getElementById("totalCount");
+const pendingCount = document.getElementById("pendingCount");
+const resolvedCount = document.getElementById("resolvedCount");
+
+
+
+onValue(ref(db, "reports"), (snapshot) => {
+  allReportsCache = [];
+
+  let total = 0, pending = 0, resolved = 0;
+
+  if (!snapshot.exists()) {
+    noReports.classList.remove("hidden");
+    return;
+  }
+
+  snapshot.forEach(child => {
+  const r = child.val();
+  const reportId = child.key;
+
+  total++;
+  if (r.status === "resolved") {
+    resolved++;
+  } else {
+    pending++; // pending + assigned
+  }
+
+  allReportsCache.push({ ...r, reportId });
+});
+
+// ✅ UPDATE CHARTS ONCE
+updateDailyChart(allReportsCache);
+updateCollectorChart(allReportsCache);
+
+   
+  totalCount.innerText = total;
+  pendingCount.innerText = pending;
+  resolvedCount.innerText = resolved;
+
+  updateChart(pending, resolved);
+  renderReports();
+});
+function renderReports() {
+  reportsContainer.innerHTML = "";
+  let shown = 0;
+
+  allReportsCache.forEach(r => {
+    if (currentFilter !== "all" && r.status !== currentFilter) return;
+
+    shown++;
+
+    const card = document.createElement("div");
+    card.className = "glass p-6 rounded-xl";
+
+    card.innerHTML = `
+      <p><b>Citizen:</b> ${r.citizenEmail}</p>
+      <p><b>Landmark:</b> ${r.landmark}</p>
+
+      <p class="mt-2"><b>Description:</b>
+        <span class="text-slate-300">${r.description}</span>
+      </p>
+
+      ${
+        r.imageBase64
+          ? `<img src="${r.imageBase64}"
+               class="mt-3 max-h-60 rounded-lg border border-slate-600 object-cover" />`
+          : `<p class="text-slate-400 mt-2">No image</p>`
+      }
+
+      <p class="mt-3"><b>Status:</b>
+        <span class="${
+          r.status === "resolved" ? "text-green-400" : "text-yellow-400"
+        }">${r.status}</span>
+      </p>
+        ${
+  r.status !== "resolved"
+    ? `
+      <div class="mt-3">
+        <label class="text-sm text-slate-300">Assign Collector</label>
+        <select
+          onchange="assignCollector('${r.reportId}', this.value)"
+          class="w-full mt-1 p-2 rounded bg-slate-800 border border-slate-600"
+        >
+          <option value="">Select collector</option>
+          ${collectorsList.map(email => `
+            <option value="${email}" ${r.assignedTo === email ? "selected" : ""}>
+              ${email}
+            </option>
+          `).join("")}
+        </select>
+      </div>
+    `
+    : ""
+}
+
+      ${
+        r.status !== "resolved"
+          ? `<button onclick="markResolved('${r.reportId}')"
+               class="mt-4 w-full py-2 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-black">
+               Mark as Resolved
+             </button>`
+          : ""
+      }
+    `;
+
+    reportsContainer.appendChild(card);
+  });
+
+  noReports.classList.toggle("hidden", shown !== 0);
+}
+
+window.assignCollector = function (reportId, collectorEmail) {
+  if (!collectorEmail) return;
+
+  update(ref(db, "reports/" + reportId), {
+    assignedTo: collectorEmail,
+    status: "assigned",
+    assignedAt: Date.now()
+  });
+};
+
+
+
+window.markResolved = function (reportId) {
+  update(ref(db, "reports/" + reportId), {
+    status: "resolved",
+    resolvedAt: Date.now()
+  });
+};
+
+window.logout = function () {
+  signOut(auth).then(() => {
+    window.location.replace("index.html");
+  });
+};
+</script>
+
+<!-- THREE.JS BACKGROUND -->
+<script>
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(
+  75, window.innerWidth / window.innerHeight, 0.1, 1000
+);
+const renderer = new THREE.WebGLRenderer({
+  canvas: document.getElementById("bg"),
+  alpha: true
+});
+renderer.setSize(window.innerWidth, window.innerHeight);
+
+const geometry = new THREE.BufferGeometry();
+const count = 1200;
+const positions = new Float32Array(count * 3);
+for (let i = 0; i < count * 3; i++) {
+  positions[i] = (Math.random() - 0.5) * 1200;
+}
+geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+
+const material = new THREE.PointsMaterial({ color: 0x22c55e, size: 1 });
+const points = new THREE.Points(geometry, material);
+scene.add(points);
+
+camera.position.z = 450;
+
+function animate() {
+  requestAnimationFrame(animate);
+  points.rotation.y += 0.00035;
+  renderer.render(scene, camera);
+}
+animate();
+
+let chart;
+
+function updateChart(pending, resolved) {
+  const ctx = document.getElementById("statusChart");
+
+  if (chart) {
+    chart.data.datasets[0].data = [pending, resolved];
+    chart.update();
+    return;
+  }
+
+  chart = new Chart(ctx, {
+  type: "doughnut",
+  data: {
+    labels: ["Pending", "Resolved"],
+    datasets: [{
+      data: [pending, resolved],
+      backgroundColor: ["#facc15", "#4ade80"]
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false, // 🔑 fixes size
+
+    layout: {
+      padding: {
+        top: 10,
+        bottom: 10
+      }
+    },
+
+    plugins: {
+      legend: {
+        position: "bottom",
+        labels: {
+          color: "white",
+          font: {
+            size: 14
+          },
+          padding: 20
+        }
+      }
+    }
+  }
+});
+}
+
+</script>
+
+</body>
+</html>

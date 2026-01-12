@@ -324,11 +324,22 @@ onValue(ref(database, "notifications/collector"), (snapshot) => {
 });
 
 window.markResolved = function (reportId) {
+  const user = auth.currentUser;
+
+  if (!user) {
+    alert("User not logged in");
+    return;
+  }
+
   update(ref(database, "reports/" + reportId), {
     status: "resolved",
-    resolvedAt: Date.now()
+    resolvedAt: Date.now(),
+    resolvedBy: user.email   // 🔑 THIS LINE IS THE FIX
   });
 };
+
+
+
 window.logout = function () {
   signOut(auth)
     .then(() => {

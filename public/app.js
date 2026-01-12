@@ -44,6 +44,8 @@ function redirectByRole(role) {
     window.location.replace("dashboardcitizen.html");
   } else if (role === "collector") {
     window.location.replace("dashboardcollector.html");
+  } else if (role === "admin") {
+    window.location.replace("dashboardadmin.html");
   } else {
     window.location.replace("index.html");
   }
