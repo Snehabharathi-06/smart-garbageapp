@@ -7,8 +7,10 @@ import {
   signOut,
   GoogleAuthProvider,
   signInWithPopup,
-  onAuthStateChanged
+  onAuthStateChanged,
+  sendPasswordResetEmail
 } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
+
 
 import {
   getDatabase,
@@ -59,6 +61,34 @@ window.googleLogin = async function () {
     document.getElementById("message").innerText = err.message;
   }
 };
+
+// ================= FORGOT PASSWORD =================
+window.forgotPassword = async function () {
+  const email = document.getElementById("email").value;
+
+  if (!email) {
+    document.getElementById("message").innerText =
+      "Please enter your email first.";
+    return;
+  }
+
+  try {
+    await sendPasswordResetEmail(auth, email);
+    document.getElementById("message").innerText =
+      "Password reset email sent. Check your inbox (and spam).";
+  } catch (err) {
+    if (err.code === "auth/user-not-found") {
+      document.getElementById("message").innerText =
+        "No account found with this email.";
+    } else if (err.code === "auth/invalid-email") {
+      document.getElementById("message").innerText =
+        "Invalid email address.";
+    } else {
+      document.getElementById("message").innerText = err.message;
+    }
+  }
+};
+
 
 // ================= AUTH STATE HANDLER =================
 function generateCitizenId(uid) {

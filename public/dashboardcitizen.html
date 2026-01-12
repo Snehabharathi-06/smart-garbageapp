@@ -277,6 +277,7 @@ function getLocation() {
 let cameraStream = null;
 let capturedImageBlob = null;
 
+
 /* ---------- CAMERA ---------- */
 async function openCamera() {
   const video = document.getElementById("camera");
@@ -337,6 +338,13 @@ import {
 import { 
   getAuth, signOut, onAuthStateChanged 
 } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
+import {
+  getStorage,
+  ref as storageRef,
+  uploadBytes,
+  getDownloadURL
+} from "https://www.gstatic.com/firebasejs/12.7.0/firebase-storage.js";
+
 
 /* ---------- Firebase Init ---------- */
 const firebaseConfig = {
@@ -352,6 +360,22 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const database = getDatabase(app);
 const auth = getAuth(app);
+const storage = getStorage(app);
+
+// 📸 Upload garbage image to Firebase Storage
+async function uploadGarbageImage(reportId) {
+  if (!capturedImageBlob) return null; // no image uploaded
+
+  const imgRef = storageRef(
+    storage,
+    `garbageReports/${reportId}.jpg`
+  );
+
+  await uploadBytes(imgRef, capturedImageBlob);
+  return await getDownloadURL(imgRef);
+}
+
+
 
 /* ---------- LOGOUT ---------- */
 window.logout = function () {
@@ -415,6 +439,32 @@ onAuthStateChanged(auth, async (user) => {
   });
 });
 
+function notifyCollector(landmark, reportId) {
+  const notifRef = push(ref(database, "notifications/collector"));
+
+  set(notifRef, {
+    message: `New garbage reported near ${landmark}`,
+    reportId: reportId,
+    timestamp: Date.now(),
+    seen: false
+  });
+}
+
+function blobToBase64(blob) {
+  return new Promise((resolve, reject) => {
+    if (!blob) {
+      resolve(null);
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.readAsDataURL(blob);
+
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = error => reject(error);
+  });
+}
+
 /* ---------- SUBMIT REPORT ---------- */
 window.submitReport = async function () {
   const landmark = document.getElementById("landmark").value.trim();
@@ -455,15 +505,29 @@ if (userSnap.exists() && userSnap.val().citizenNumber) {
         ? `https://www.google.com/maps?q=${userLatitude},${userLongitude}`
         : "Manual area only";
 
-    await push(ref(database, "reports"), {
+    const reportRef = push(ref(database, "reports"));
+const reportId = reportRef.key;
+
+// 🔥 convert image to base64
+const imageBase64 = await blobToBase64(capturedImageBlob);
+
+await set(reportRef, {
   citizenEmail: user.email,
-  citizenNumber: citizenNumber,   // ✅ always defined
+  citizenNumber: citizenNumber,
   landmark: landmark || "Not provided",
   description: description || "Not provided",
   mapLink: finalMapLink,
+  imageBase64: imageBase64 || null, // ✅ KEY CHANGE
   status: "pending",
   timestamp: Date.now()
 });
+
+notifyCollector(landmark || "Unknown location", reportId);
+
+
+capturedImageBlob = null;
+document.getElementById("previewImage").classList.add("hidden");
+
 
     loading.classList.add("hidden");
     output.classList.remove("hidden");

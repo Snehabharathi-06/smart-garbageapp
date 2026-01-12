@@ -36,6 +36,16 @@
 
   <!-- Hero Section -->
   <section class="text-center max-w-4xl mb-12">
+    <!-- 🔔 Notifications -->
+<section class="glass w-full max-w-4xl rounded-2xl shadow-xl p-4 mb-8">
+  <h2 class="text-lg font-semibold mb-3">🔔 Notifications</h2>
+  <ul id="notifList" class="space-y-2 text-sm"></ul>
+
+  <p id="noNotif" class="text-slate-400 hidden">
+    No new notifications
+  </p>
+</section>
+
     <h1 class="text-4xl md:text-6xl font-extrabold tracking-tight mb-4" data-lang="appName1">
       Smart - Garbage Collector Dashboard
     </h1>
@@ -155,6 +165,9 @@ import { getDatabase, ref, onValue, update }
   signOut, 
   
 } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
+import { push, remove } 
+from "https://www.gstatic.com/firebasejs/12.7.0/firebase-database.js";
+
 
 const firebaseConfig = {
   apiKey: "AIzaSyAfF5WijTd9LbgqrIZDp3imRx36Aeg3OAg",
@@ -221,12 +234,24 @@ onValue(ref(database, "reports"), (snapshot) => {
   </p>
 
   ${
+  r.imageBase64
+    ? `<img 
+         src="${r.imageBase64}" 
+         class="mt-3 rounded-lg border border-slate-600 max-h-60 object-cover"
+       />`
+    : `<p class="text-slate-400 mt-2">No image uploaded</p>`
+}
+
+
+  ${
     r.mapLink && r.mapLink !== "Manual area only"
       ? `<a href="${r.mapLink}" target="_blank" class="text-sky-400 underline mt-2 inline-block">
            📍 Open in Google Maps
          </a>`
       : `<p class="text-slate-400 mt-2">Manual area only</p>`
   }
+
+  
 
   <p class="mt-2"><b>Status:</b>
     <span class="text-yellow-400">${r.status}</span>
@@ -238,6 +263,56 @@ onValue(ref(database, "reports"), (snapshot) => {
     Mark as Resolved
   </button>
 `;
+// 🔔 Notification elements
+const notifList = document.getElementById("notifList");
+const noNotif = document.getElementById("noNotif");
+
+// 🔔 Listen for notifications
+onValue(ref(database, "notifications/collector"), (snapshot) => {
+  notifList.innerHTML = "";
+  let hasNotif = false;
+
+  if (!snapshot.exists()) {
+    noNotif.classList.remove("hidden");
+    return;
+  }
+
+  snapshot.forEach((child) => {
+    const notif = child.val();
+
+    if (notif.seen) return;
+
+    hasNotif = true;
+
+    const li = document.createElement("li");
+    li.className =
+      "glass px-4 py-2 rounded-lg cursor-pointer hover:bg-white/10";
+
+    li.innerHTML = `
+      🚨 ${notif.message}
+      <div class="text-xs text-slate-400 mt-1">
+        ${new Date(notif.timestamp).toLocaleString()}
+      </div>
+    `;
+
+    li.onclick = () => {
+      // mark as seen
+      update(ref(database, "notifications/collector/" + child.key), {
+        seen: true
+      });
+    };
+
+    notifList.appendChild(li);
+  });
+
+  if (!hasNotif) {
+    noNotif.classList.remove("hidden");
+  } else {
+    noNotif.classList.add("hidden");
+  }
+});
+
+
 
 
     container.appendChild(card);
