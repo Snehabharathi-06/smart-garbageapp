@@ -69,13 +69,15 @@
 </section>
 
 <section class="glass max-w-5xl mx-auto p-6 rounded-2xl mb-10">
-  <h2 class="text-xl font-semibold mb-4 text-center">
-    Reports Status Chart
-  </h2>
+  <h2 class="text-xl font-semibold mb-4 text-left pl-2">
+  Reports Status Chart
+</h2>
+
    <!-- Chart container -->
-  <div style="height: 320px;">
-    <canvas id="statusChart"></canvas>
-  </div>
+  <div class="mt-6" style="height: 320px;">
+  <canvas id="statusChart"></canvas>
+</div>
+
 </section>
 
 <section class="glass max-w-6xl mx-auto p-6 rounded-2xl mb-10">
@@ -353,6 +355,40 @@ function renderReports() {
           r.status === "resolved" ? "text-green-400" : "text-yellow-400"
         }">${r.status}</span>
       </p>
+      <p class="mt-2">
+  <b>Assigned To:</b>
+  ${
+    r.assignedTo
+      ? `<span class="text-sky-400">${r.assignedTo}</span>`
+      : `<span class="text-slate-400">Not assigned</span>`
+  }
+</p>
+
+${
+  r.assignedAt
+    ? `<p class="text-xs text-slate-400">
+         Assigned on: ${new Date(r.assignedAt).toLocaleString()}
+       </p>`
+    : ""
+}
+
+${
+  r.resolvedBy
+    ? `<p class="mt-2">
+         <b>Resolved By:</b>
+         <span class="text-green-400">${r.resolvedBy}</span>
+       </p>`
+    : ""
+}
+
+${
+  r.resolvedAt
+    ? `<p class="text-xs text-slate-400">
+         Resolved on: ${new Date(r.resolvedAt).toLocaleString()}
+       </p>`
+    : ""
+}
+
         ${
   r.status !== "resolved"
     ? `
@@ -475,7 +511,7 @@ function updateChart(pending, resolved) {
 
     layout: {
       padding: {
-        top: 10,
+        top: 20,
         bottom: 10
       }
     },
@@ -497,6 +533,69 @@ function updateChart(pending, resolved) {
 }
 
 </script>
+
+
+
+<body class="text-white min-h-screen flex flex-col items-center justify-center px-6">
+
+  <!-- Language Toggle (TOP RIGHT) -->
+  <div class="fixed top-4 right-4 z-50 flex gap-2">
+    <button
+      onclick="setUserLanguage('en')"
+      class="px-3 py-1 rounded-lg bg-black/40 hover:bg-black/60 text-sm"
+    >
+      English
+    </button>
+
+    <button
+      onclick="setUserLanguage('kn')"
+      class="px-3 py-1 rounded-lg bg-black/40 hover:bg-black/60 text-sm"
+    >
+      ಕನ್ನಡ
+    </button>
+  </div>
+
+<footer class="w-full bg-black/60 mt-20">
+  <div class="max-w-6xl mx-auto px-10 py-10">
+
+    <!-- TOP ROW -->
+    <div class="flex justify-between items-start">
+
+      <!-- LEFT -->
+      <div class="text-left">
+        <h2 class="text-emerald-400 text-xl font-semibold mb-2" data-lang="smart">
+           Smart-Garbage
+        </h2>
+        <p class="text-sm mb-4" data-lang="line">
+          Building cleaner and smarter cities together.
+        </p>
+
+        <h3 class="font-semibold mb-2" data-lang="followUs">Follow Us</h3>
+        <p data-lang="Follow1">Instagram</p>
+        <p data-lang="Follow2">Twitter</p>
+        <p data-lang="Follow3">Facebook</p>
+      </div>
+
+      <!-- RIGHT -->
+      <div class="text-right">
+        <h3 class="font-semibold mb-2" data-lang="contactUs">Contact Us</h3>
+        <p data-lang="address">📍 3rd Cross,5th Main Road, J.P Nagar, Bengaluru, Karnataka, India</p>
+        <p data-lang="phoneno">📞 +91 98765 43210 - Anuj P</p>
+        <p data-lang="emailadd">✉️ smartgarbage@gmail.com</p>
+      </div>
+
+    </div>
+
+    <!-- BOTTOM -->
+    <div class="border-t border-white/30 mt-8 pt-4 text-center text-sm" data-lang="rights">
+      © 2026 Smart-Garbage. All rights reserved.
+    </div>
+
+  </div>
+</footer>
+
+
+<script src="lang.js"></script>
 
 </body>
 </html>

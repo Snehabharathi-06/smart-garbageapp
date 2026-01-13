@@ -30,14 +30,17 @@
   </style>
 </head>
 
-
-  <!-- Three.js Background -->
+ <body class="text-white min-h-screen px-6 py-10 ">
   <canvas id="bg"></canvas>
+  <div class="flex flex-col items-center w-full">
+
 
   <!-- Hero Section -->
-  <section class="text-center max-w-4xl mb-12">
+  <section class="text-center max-w-4xl mx-auto mb-12">
+
     <!-- 🔔 Notifications -->
-<section class="glass w-full max-w-4xl rounded-2xl shadow-xl p-4 mb-8">
+<section class="glass w-full max-w-4xl mx-auto rounded-2xl shadow-xl p-4 mb-10 text-center">
+
   <h2 class="text-lg font-semibold mb-3">🔔 Notifications</h2>
   <ul id="notifList" class="space-y-2 text-sm"></ul>
 
@@ -89,73 +92,55 @@
     </div>
   </section>
 
-  <script>
-    function acceptTask() {
-      showStatus();
-    }
+  
+<script>
+  // Three.js Background (City Operations Particles)
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(
+    75,
+    window.innerWidth / window.innerHeight,
+    0.1,
+    1000
+  );
 
-    function markResolved() {
-      showStatus();
-    }
+  const renderer = new THREE.WebGLRenderer({
+    canvas: document.getElementById("bg"),
+    alpha: true
+  });
 
-    function showStatus() {
-      const loading = document.getElementById("loading");
-      const output = document.getElementById("output");
+  renderer.setSize(window.innerWidth, window.innerHeight);
 
-      loading.classList.remove("hidden");
-      output.classList.add("hidden");
+  const geometry = new THREE.BufferGeometry();
+  const count = 1300;
+  const positions = new Float32Array(count * 3);
 
-      setTimeout(() => {
-        loading.classList.add("hidden");
-        output.classList.remove("hidden");
-      }, 1500);
-    }
+  for (let i = 0; i < count * 3; i++) {
+    positions[i] = (Math.random() - 0.5) * 1200;
+  }
 
-    // Three.js Background (City Operations Particles)
-    const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(
-      75,
-      window.innerWidth / window.innerHeight,
-      0.1,
-      1000
-    );
-    const renderer = new THREE.WebGLRenderer({
-      canvas: document.getElementById("bg"),
-      alpha: true
-    });
+  geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+
+  const material = new THREE.PointsMaterial({ color: 0x38bdf8, size: 1 });
+  const points = new THREE.Points(geometry, material);
+  scene.add(points);
+
+  camera.position.z = 450;
+
+  function animate() {
+    requestAnimationFrame(animate);
+    points.rotation.y += 0.00035;
+    renderer.render(scene, camera);
+  }
+  animate();
+
+  window.addEventListener("resize", () => {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
+  });
+</script>
 
-    const geometry = new THREE.BufferGeometry();
-    const count = 1300;
-    const positions = new Float32Array(count * 3);
-
-    for (let i = 0; i < count * 3; i++) {
-      positions[i] = (Math.random() - 0.5) * 1200;
-    }
-
-    geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
-    const material = new THREE.PointsMaterial({
-      color: 0x38bdf8,
-      size: 1
-    });
-    const points = new THREE.Points(geometry, material);
-    scene.add(points);
-
-    camera.position.z = 450;
-
-    function animate() {
-      requestAnimationFrame(animate);
-      points.rotation.y += 0.00035;
-      renderer.render(scene, camera);
-    }
-    animate();
-
-    window.addEventListener("resize", () => {
-      camera.aspect = window.innerWidth / window.innerHeight;
-      camera.updateProjectionMatrix();
-      renderer.setSize(window.innerWidth, window.innerHeight);
-    });
-  </script>
+   
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
 import { getDatabase, ref, onValue, update } 
@@ -214,7 +199,8 @@ onValue(ref(database, "reports"), (snapshot) => {
     const reportId = child.key;   // 🔥 IMPORTANT
     const r = child.val();
 
-    if (r.status !== "pending") return;
+    if (r.status !== "pending" && r.status !== "assigned") return;
+
 
     found = true;
 
@@ -323,20 +309,23 @@ onValue(ref(database, "notifications/collector"), (snapshot) => {
   }
 });
 
-window.markResolved = function (reportId) {
+window.markResolved = async function (reportId) {
   const user = auth.currentUser;
 
-  if (!user) {
-    alert("User not logged in");
+  if (!user || !user.email) {
+    alert("Collector not logged in properly");
     return;
   }
 
-  update(ref(database, "reports/" + reportId), {
+  await update(ref(database, "reports/" + reportId), {
     status: "resolved",
     resolvedAt: Date.now(),
-    resolvedBy: user.email   // 🔑 THIS LINE IS THE FIX
+    resolvedBy: user.email // ✅ GUARANTEED
   });
+
+  alert("Marked as resolved by " + user.email);
 };
+
 
 
 
@@ -352,7 +341,7 @@ window.logout = function () {
 
 </script>
 
-<body class="text-white min-h-screen flex flex-col items-center justify-center px-6">
+
 
   <!-- Language Toggle (TOP RIGHT) -->
   <div class="fixed top-4 right-4 z-50 flex gap-2">
@@ -407,6 +396,7 @@ window.logout = function () {
       © 2026 Smart-Garbage. All rights reserved.
     </div>
 
+  </div>
   </div>
 </footer>
 
