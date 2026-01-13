@@ -4,8 +4,10 @@ const translations = {
     appName: "  Smart - Garbage",
     appName1:"Smart - Garbage Collector Dashboard",
     appName2:"Smart - Garbage Citizen Dashboard",
+    appName3:"Smart-Garbage Admin Dashboard",
     tagline: "Report garbage issues in your area and help keep the city clean and sustainable.",
     tagline1:"Review citizen garbage reports, verify locations, and take action to keep the city clean.",
+    tagline2:"Monitor, assign, and track garbage collection activities",
     login: "Login",
     signup: "Sign Up",
     googleSignIn: "Sign in with Google",
@@ -40,15 +42,25 @@ const translations = {
     camera:"📷 Open Camera",
     capture:"📸 Capture",
     upload:"📂 Upload File",
-    citizenId:"Citizen Id"
+    citizenId:"Citizen Id",
+    totalReports: "Total Reports",
+    pendingReports: "Pending",
+    resolvedReports: "Resolved",
+    reportsStatusChart: "Reports Status Chart",
+    dailyReports: "Daily Garbage Reports",
+    collectorPerformance: "Collector Performance",
+    allReports: "All Garbage Reports"
+
   },
 
   kn: {
     appName: "  ಸ್ಮಾರ್ಟ್ ಗಾರ್ಬೇಜ್",
     appName1: "ಸ್ಮಾರ್ಟ್ - ಕಸ ಸಂಗ್ರಾಹಕ ಡ್ಯಾಶ್‌ಬೋರ್ಡ್",
     appName2:"ಸ್ಮಾರ್ಟ್ - ಗಾರ್ಬೇಜ್ ಸಿಟಿಜನ್ ಡ್ಯಾಶ್‌ಬೋರ್ಡ್",
+    appName3:"ಸ್ಮಾರ್ಟ್-ಗಾರ್ಬೇಜ್ ಅಡ್ಮಿನ್ ಡ್ಯಾಶ್‌ಬೋರ್ಡ್",
     tagline: "ನಿಮ್ಮ ಪ್ರದೇಶದಲ್ಲಿನ ಕಸದ ಸಮಸ್ಯೆಗಳನ್ನು ವರದಿ ಮಾಡಿ ಮತ್ತು ನಗರವನ್ನು ಸ್ವಚ್ಛವಾಗಿರಿಸಿ.",
     tagline1: "ನಾಗರಿಕ ಕಸದ ವರದಿಗಳನ್ನು ಪರಿಶೀಲಿಸಿ, ಸ್ಥಳಗಳನ್ನು ಪರಿಶೀಲಿಸಿ ಮತ್ತು ನಗರವನ್ನು ಸ್ವಚ್ಛವಾಗಿಡಲು ಕ್ರಮ ಕೈಗೊಳ್ಳಿ.",
+    tagline2:"ಕಸ ಸಂಗ್ರಹ ಚಟುವಟಿಕೆಗಳನ್ನು ಮೇಲ್ವಿಚಾರಣೆ ಮಾಡಿ, ನಿಯೋಜಿಸಿ ಮತ್ತು ಟ್ರ್ಯಾಕ್ ಮಾಡಿ",
     login: "ಲಾಗಿನ್",
     signup: "ಸೈನ್ ಅಪ್",
     googleSignIn: "ಗೂಗಲ್ ಮೂಲಕ ಲಾಗಿನ್",
@@ -83,7 +95,15 @@ const translations = {
     camera:"📷 ಕ್ಯಾಮೆರಾ ತೆರೆಯಿರಿ",
     capture:"📸 ಸೆರೆಹಿಡಿಯಿರಿ",
     upload:"📂 ಫೈಲ್ ಅಪ್‌ಲೋಡ್ ಮಾಡಿ",
-    citizenId:"ನಾಗರಿಕ ಐಡಿ"
+    citizenId:"ನಾಗರಿಕ ಐಡಿ",
+    totalReports: "ಒಟ್ಟು ವರದಿಗಳು",
+    pendingReports: "ಬಾಕಿ ಇರುವವು",
+    resolvedReports: "ಪರಿಹರಿಸಲಾಗಿದೆ",
+    reportsStatusChart: "ವರದಿ ಸ್ಥಿತಿ ಚಾರ್ಟ್",
+    dailyReports: "ದೈನಂದಿನ ಕಸದ ವರದಿಗಳು",
+    collectorPerformance: "ಕಲೆಕ್ಟರ್ ಕಾರ್ಯಕ್ಷಮತೆ",
+    allReports: "ಎಲ್ಲಾ ಕಸದ ವರದಿಗಳು"
+
   }
 };
 

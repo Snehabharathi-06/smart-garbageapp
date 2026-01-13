@@ -37,16 +37,16 @@
 
 <!-- HEADER -->
 <section class="text-center max-w-5xl mx-auto mb-10">
-  <h1 class="text-4xl md:text-5xl font-extrabold mb-3">
+  <h1 class="text-4xl md:text-5xl font-extrabold mb-3" data-lang="appName3">
     Smart-Garbage Admin Dashboard
   </h1>
-  <p class="text-slate-300">
+  <p class="text-slate-300" data-lang="tagline2">
     Monitor, assign, and track garbage collection activities
   </p>
 
   <button
     onclick="logout()"
-    class="mt-5 px-6 py-2 rounded-xl bg-red-500 hover:bg-red-400 text-slate-900 font-semibold"
+    class="mt-5 px-6 py-2 rounded-xl bg-red-500 hover:bg-red-400 text-slate-900 font-semibold" data-lang="logout"
   >
     Logout
   </button>
@@ -55,21 +55,21 @@
 <!-- STATS -->
 <section class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto mb-10">
   <div class="glass p-5 rounded-xl text-center">
-    <h2 class="text-lg">Total Reports</h2>
+    <h2 class="text-lg" data-lang="totalReports">Total Reports</h2>
     <p id="totalCount" class="text-3xl font-bold mt-2">0</p>
   </div>
   <div class="glass p-5 rounded-xl text-center">
-    <h2 class="text-lg">Pending</h2>
+    <h2 class="text-lg" data-lang="pendingReports">Pending</h2>
     <p id="pendingCount" class="text-3xl font-bold text-yellow-400 mt-2">0</p>
   </div>
   <div class="glass p-5 rounded-xl text-center">
-    <h2 class="text-lg">Resolved</h2>
+    <h2 class="text-lg" data-lang="resolvedReports">Resolved</h2>
     <p id="resolvedCount" class="text-3xl font-bold text-green-400 mt-2">0</p>
   </div>
 </section>
 
 <section class="glass max-w-5xl mx-auto p-6 rounded-2xl mb-10">
-  <h2 class="text-xl font-semibold mb-4 text-left pl-2">
+  <h2 class="text-xl font-semibold mb-4 text-left pl-2" data-lang="reportsStatusChart">
   Reports Status Chart
 </h2>
 
@@ -81,7 +81,7 @@
 </section>
 
 <section class="glass max-w-6xl mx-auto p-6 rounded-2xl mb-10">
-  <h2 class="text-xl font-semibold mb-4 text-center">
+  <h2 class="text-xl font-semibold mb-4 text-center" data-lang="dailyReports">
     Daily Garbage Reports
   </h2>
 
@@ -91,7 +91,7 @@
 </section>
 
 <section class="glass max-w-6xl mx-auto p-6 rounded-2xl mb-10">
-  <h2 class="text-xl font-semibold mb-4 text-center">
+  <h2 class="text-xl font-semibold mb-4 text-center" data-lang="collectorPerformance">
     Collector Performance
   </h2>
 
@@ -105,7 +105,7 @@
 
 <!-- REPORTS -->
 <section class="glass max-w-6xl mx-auto p-6 rounded-2xl">
-  <h2 class="text-xl font-semibold mb-6">All Garbage Reports</h2>
+  <h2 class="text-xl font-semibold mb-6" data-lang="allReports">All Garbage Reports</h2>
 
     <!-- FILTER BUTTONS -->
   <div class="flex gap-3 mb-6">
@@ -322,6 +322,8 @@ updateCollectorChart(allReportsCache);
 
   updateChart(pending, resolved);
   renderReports();
+  // ✅ FORCE TRANSLATION AGAIN
+  loadUserLanguage();
 });
 function renderReports() {
   reportsContainer.innerHTML = "";
@@ -536,7 +538,7 @@ function updateChart(pending, resolved) {
 
 
 
-<body class="text-white min-h-screen flex flex-col items-center justify-center px-6">
+
 
   <!-- Language Toggle (TOP RIGHT) -->
   <div class="fixed top-4 right-4 z-50 flex gap-2">
@@ -596,6 +598,13 @@ function updateChart(pending, resolved) {
 
 
 <script src="lang.js"></script>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    loadUserLanguage();
+  });
+</script>
+
 
 </body>
 </html>
