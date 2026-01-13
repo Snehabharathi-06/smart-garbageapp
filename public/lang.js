@@ -49,7 +49,8 @@ const translations = {
     reportsStatusChart: "Reports Status Chart",
     dailyReports: "Daily Garbage Reports",
     collectorPerformance: "Collector Performance",
-    allReports: "All Garbage Reports"
+    allReports: "All Garbage Reports",
+    ForgotPassword:"Forgot Password?,Click Here"
 
   },
 
@@ -102,7 +103,8 @@ const translations = {
     reportsStatusChart: "ವರದಿ ಸ್ಥಿತಿ ಚಾರ್ಟ್",
     dailyReports: "ದೈನಂದಿನ ಕಸದ ವರದಿಗಳು",
     collectorPerformance: "ಕಲೆಕ್ಟರ್ ಕಾರ್ಯಕ್ಷಮತೆ",
-    allReports: "ಎಲ್ಲಾ ಕಸದ ವರದಿಗಳು"
+    allReports: "ಎಲ್ಲಾ ಕಸದ ವರದಿಗಳು",
+    ForgotPassword:"ಪಾಸ್‌ವರ್ಡ್ ಮರೆತಿದ್ದೀರಾ?, ಇಲ್ಲಿ ಕ್ಲಿಕ್ ಮಾಡಿ"
 
   }
 };
