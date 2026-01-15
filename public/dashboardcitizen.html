@@ -278,6 +278,8 @@ function getLocation() {
 <script>
 let cameraStream = null;
 let capturedImageBlob = null;
+let imageSource = null; // "camera" or "upload"
+document.getElementById("previewImage").classList.add("hidden");
 
 
 /* ---------- CAMERA ---------- */
@@ -306,6 +308,7 @@ function capturePhoto() {
 
   canvas.toBlob(blob => {
     capturedImageBlob = blob;
+    imageSource = "camera"; // ✅ ADD
     preview.src = URL.createObjectURL(blob);
     preview.classList.remove("hidden");
   }, "image/jpeg");
@@ -320,6 +323,7 @@ function handleFileUpload(event) {
   if (!file) return;
 
   capturedImageBlob = file;
+  imageSource = "upload";
 
   const preview = document.getElementById("previewImage");
   preview.src = URL.createObjectURL(file);
@@ -346,6 +350,17 @@ import {
   uploadBytes,
   getDownloadURL
 } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-storage.js";
+
+// 🔤 Normalize landmark for reliable matching
+function normalizeLandmark(text) {
+  if (!text) return "";
+  return text
+    .toLowerCase()
+    .replace(/[^a-z0-9 ]/g, "") // remove commas, dots, symbols
+    .replace(/\s+/g, " ")       // remove extra spaces
+    .trim();
+}
+
 
 
 /* ---------- Firebase Init ---------- */
@@ -467,6 +482,67 @@ function blobToBase64(blob) {
   });
 }
 
+function calculateConfidence(data) {
+  let score = 0;
+
+  // Landmark
+  if (data.landmark && data.landmark.length >= 3) {
+    score += 20;
+  }
+
+  // Description
+  if (data.description && data.description.trim().length >= 10) {
+    score += 20;
+  }
+
+  // GPS
+  if (data.mapLink && data.mapLink !== "Manual area only") {
+    score += 30;
+  }
+
+  // Image
+  if (data.imageBase64) {
+    score += 30;
+  }
+
+  return Math.min(score, 100);
+}
+
+async function findSimilarReports(landmark, userEmail) {
+  const snapshot = await get(ref(database, "reports"));
+  if (!snapshot.exists()) return 0;
+
+  const normalizedInput = normalizeLandmark(landmark);
+  let count = 0;
+  const now = Date.now();
+  const TIME_WINDOW = 24 * 60 * 60 * 1000; // 24 hours
+
+  snapshot.forEach(child => {
+    const r = child.val();
+
+    // Ignore own reports
+    if (r.citizenEmail === userEmail) return;
+    if (!r.landmark) return;
+
+    const normalizedExisting = normalizeLandmark(r.landmark);
+
+    const samePlace =
+      normalizedExisting.includes(normalizedInput) ||
+      normalizedInput.includes(normalizedExisting);
+
+    const withinTime =
+      r.timestamp && (now - r.timestamp <= TIME_WINDOW);
+
+    if (samePlace && withinTime) {
+      count++;
+    }
+  });
+
+  return count;
+}
+
+
+
 /* ---------- SUBMIT REPORT ---------- */
 window.submitReport = async function () {
   const landmark = document.getElementById("landmark").value.trim();
@@ -513,16 +589,60 @@ const reportId = reportRef.key;
 // 🔥 convert image to base64
 const imageBase64 = await blobToBase64(capturedImageBlob);
 
-await set(reportRef, {
+const reportData = {
   citizenEmail: user.email,
   citizenNumber: citizenNumber,
   landmark: landmark || "Not provided",
   description: description || "Not provided",
   mapLink: finalMapLink,
-  imageBase64: imageBase64 || null, // ✅ KEY CHANGE
+  imageBase64: imageBase64 || null,
+  imageSource: imageSource || null,
+
+  // 🔐 Verification system
   status: "pending",
+  verificationStatus: "unverified",
+  confidence: 0,
+
   timestamp: Date.now()
-});
+};
+
+// 🔢 Auto calculate confidence
+// 1️⃣ Base confidence
+let confidence = calculateConfidence(reportData);
+
+// 2️⃣ Crowd verification
+const similarCount = await findSimilarReports(
+  reportData.landmark,
+  user.email
+);
+
+// Boost confidence based on crowd
+if (similarCount >= 1) confidence += 20;
+if (similarCount >= 3) confidence += 30;
+
+// Cap confidence
+confidence = Math.min(confidence, 100);
+
+// 3️⃣ Verification status (NO auto-unverified)
+let verificationStatus = "pending_review";
+
+if (confidence >= 70) {
+  verificationStatus = "verified";
+} 
+else if (similarCount >= 1) {
+  verificationStatus = "verified_by_crowd";
+}
+
+// Save results
+reportData.confidence = confidence;
+reportData.similarReports = similarCount + 1;
+reportData.verificationStatus = verificationStatus;
+
+
+
+// 🔥 Save to Firebase
+await set(reportRef, reportData);
+
 
 notifyCollector(landmark || "Unknown location", reportId);
 

@@ -354,11 +354,62 @@ function renderReports() {
           : `<p class="text-slate-400 mt-2">No image</p>`
       }
 
-      <p class="mt-3"><b>Status:</b>
-        <span class="${
-          r.status === "resolved" ? "text-green-400" : "text-yellow-400"
-        }">${r.status}</span>
-      </p>
+      <!-- STATUS -->
+<p class="mt-3 flex items-center gap-2">
+  <b>Status:</b>
+  <span class="${
+    r.status === "resolved"
+      ? "text-green-400"
+      : r.status === "assigned"
+      ? "text-blue-400"
+      : "text-yellow-400"
+  } font-semibold">
+    ${r.status}
+  </span>
+</p>
+
+<!-- CONFIDENCE -->
+<p class="mt-2 flex items-center gap-2">
+  <b>Confidence:</b>
+  <span class="${
+    r.confidence >= 70
+      ? "text-green-400"
+      : r.confidence >= 40
+      ? "text-yellow-400"
+      : "text-red-400"
+  } font-semibold">
+    ${r.confidence || 0}%
+  </span>
+</p>
+<p class="mt-2">
+  <b>Verification:</b>
+  <span class="${
+    r.verificationStatus === "verified"
+      ? "text-green-400"
+      : r.verificationStatus === "verified_by_crowd"
+      ? "text-blue-400"
+      : "text-red-400"
+  } font-semibold">
+    ${
+      r.verificationStatus === "verified"
+        ? "Auto Verified"
+        : r.verificationStatus === "verified_by_crowd"
+        ? "Verified by Multiple Citizens Reports"
+        : "Not Verified"
+    }
+  </span>
+</p>
+
+${
+  r.similarReports > 1
+    ? `<p class="text-xs text-slate-400">
+         ${r.similarReports} citizens reported this area
+       </p>`
+    : ""
+}
+
+
+
       <p class="mt-2">
   <b>Assigned To:</b>
   ${
