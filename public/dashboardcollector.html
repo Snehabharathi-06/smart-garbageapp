@@ -170,6 +170,7 @@ const app = initializeApp(firebaseConfig);
 const database = getDatabase(app);
 const auth = getAuth(app);
 
+
 import { onAuthStateChanged } 
   from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
 
@@ -177,139 +178,269 @@ onAuthStateChanged(auth, (user) => {
   if (!user) return;
 
   window.currentUser = user;     // 🔑 REQUIRED
-  loadUserLanguage(user);        // ✅ CORRECT
+  loadUserLanguage(user);      // ✅ CORRECT
+
+   // ✅ THIS LINE WAS MISSING
+  listenAssignedReports(user.email);
+  listenNotifications(user.uid);
 });
 
 
 const container = document.getElementById("reportsContainer");
 const noReports = document.getElementById("noReports");
 
- 
+function listenAssignedReports(collectorEmail) {
+  onValue(ref(database, "reports"), (snapshot) => {
+    container.innerHTML = "";
+    noReports.classList.add("hidden");
 
-onValue(ref(database, "reports"), (snapshot) => {
-  container.innerHTML = "";
-  noReports.classList.add("hidden");
+    let found = false;
 
-  if (!snapshot.exists()) {
-    noReports.classList.remove("hidden");
-    return;
-  }
+    if (!snapshot.exists()) {
+      noReports.classList.remove("hidden");
+      return;
+    }
 
-  let found = false;
+    snapshot.forEach((child) => {
+      const reportId = child.key;
+      const r = child.val();
 
-  snapshot.forEach((child) => {
-    const reportId = child.key;   // 🔥 IMPORTANT
-    const r = child.val();
+      // ✅ ONLY assigned to this collector
+      if (!r.assignedTo) return;
+      if (r.assignedTo !== collectorEmail) return;
 
-    if (r.status !== "pending" && r.status !== "assigned") return;
+      // ✅ Ignore resolved
+      if (r.status === "resolved") return;
 
+      found = true;
 
-    found = true;
+      const card = document.createElement("div");
+      card.className = "glass p-6 rounded-xl";
 
-    const card = document.createElement("div");
-    card.className = "glass p-6 rounded-xl";
+      card.innerHTML = `
+        <p><b>Citizen:</b> ${r.citizenEmail}</p>
+        <p><b>Landmark:</b> ${r.landmark}</p>
 
-    card.innerHTML = `
-  <p><b>Citizen ID:</b> ${r.citizenNumber}</p>
-  <p><b>Email:</b> ${r.citizenEmail}</p>
-  <p><b>Landmark:</b> ${r.landmark}</p>
+        <p class="mt-2">
+          <b>Description:</b><br>
+          <span class="text-slate-300">${r.description}</span>
+        </p>
 
-  <p class="mt-2">
-    <b>Description:</b><br>
-    <span class="text-slate-300">
-      ${r.description || "No description provided"}
-    </span>
-  </p>
+        ${
+          r.imageBase64
+            ? `<img src="${r.imageBase64}" class="mt-3 rounded-lg border max-h-60 object-cover" />`
+            : `<p class="text-slate-400 mt-2">No image</p>`
+        }
 
-  ${
-  r.imageBase64
-    ? `<img 
-         src="${r.imageBase64}" 
-         class="mt-3 rounded-lg border border-slate-600 max-h-60 object-cover"
-       />`
-    : `<p class="text-slate-400 mt-2">No image uploaded</p>`
+        ${
+          r.mapLink && r.mapLink !== "Manual area only"
+            ? `<a href="${r.mapLink}" target="_blank" class="text-sky-400 underline mt-2 inline-block">📍 Open in Google Maps</a>`
+            : `<p class="text-slate-400 mt-2">Manual area only</p>`
+        }
+
+        <p class="mt-2"><b>Status:</b>
+          <span class="text-blue-400 font-semibold">${r.status}</span>
+        </p>
+
+        <button
+          onclick="markResolved('${reportId}')"
+          class="mt-4 w-full py-2 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-black font-semibold">
+          Mark as Resolved
+        </button>
+      `;
+
+       
+
+      container.appendChild(card);
+    });
+
+    if (!found) {
+      noReports.classList.remove("hidden");
+    }
+  });
 }
 
+function listenNotifications(collectorUid) {
+  const notifList = document.getElementById("notifList");
+  const noNotif = document.getElementById("noNotif");
 
-  ${
-    r.mapLink && r.mapLink !== "Manual area only"
-      ? `<a href="${r.mapLink}" target="_blank" class="text-sky-400 underline mt-2 inline-block">
-           📍 Open in Google Maps
-         </a>`
-      : `<p class="text-slate-400 mt-2">Manual area only</p>`
-  }
+  onValue(
+    ref(database, `notifications/collectors/${collectorUid}`),
+    (snapshot) => {
+      notifList.innerHTML = "";
+      let hasNotif = false;
+
+      if (!snapshot.exists()) {
+        noNotif.classList.remove("hidden");
+        return;
+      }
+
+      snapshot.forEach((child) => {
+        const notif = child.val();
+        if (notif.seen) return;
+
+        hasNotif = true;
+
+        const li = document.createElement("li");
+        li.className =
+          "glass px-4 py-2 rounded-lg hover:bg-white/10 cursor-pointer";
+
+        li.innerHTML = `
+          ${notif.message}
+          <div class="text-xs text-slate-400">
+            ${new Date(notif.timestamp).toLocaleString()}
+          </div>
+        `;
+
+        li.onclick = () => {
+          update(
+            ref(database, `notifications/collectors/${collectorUid}/${child.key}`),
+            { seen: true }
+          );
+        };
+
+        notifList.appendChild(li);
+      });
+
+      noNotif.classList.toggle("hidden", hasNotif);
+    }
+  );
+}
+
+ 
+
+// onValue(ref(database, "reports"), (snapshot) => {
+//   container.innerHTML = "";
+//   noReports.classList.add("hidden");
+
+//   if (!snapshot.exists()) {
+//     noReports.classList.remove("hidden");
+//     return;
+//   }
+
+//   let found = false;
+
+//   snapshot.forEach((child) => {
+//     const reportId = child.key;   // 🔥 IMPORTANT
+//     const r = child.val();
+
+//     const user = auth.currentUser;
+
+// // show ONLY reports assigned to this collector
+// if (!r.assignedTo) return;
+// if (r.assignedTo !== user.email) return;
+
+// // show only active work
+// if (r.status === "resolved") return;
+
+
+
+//     found = true;
+
+//     const card = document.createElement("div");
+//     card.className = "glass p-6 rounded-xl";
+
+//     card.innerHTML = `
+//   <p><b>Citizen ID:</b> ${r.citizenNumber}</p>
+//   <p><b>Email:</b> ${r.citizenEmail}</p>
+//   <p><b>Landmark:</b> ${r.landmark}</p>
+
+//   <p class="mt-2">
+//     <b>Description:</b><br>
+//     <span class="text-slate-300">
+//       ${r.description || "No description provided"}
+//     </span>
+//   </p>
+
+//   ${
+//   r.imageBase64
+//     ? `<img 
+//          src="${r.imageBase64}" 
+//          class="mt-3 rounded-lg border border-slate-600 max-h-60 object-cover"
+//        />`
+//     : `<p class="text-slate-400 mt-2">No image uploaded</p>`
+// }
+
+
+//   ${
+//     r.mapLink && r.mapLink !== "Manual area only"
+//       ? `<a href="${r.mapLink}" target="_blank" class="text-sky-400 underline mt-2 inline-block">
+//            📍 Open in Google Maps
+//          </a>`
+//       : `<p class="text-slate-400 mt-2">Manual area only</p>`
+//   }
 
   
 
-  <p class="mt-2"><b>Status:</b>
-    <span class="text-yellow-400">${r.status}</span>
-  </p>
+//   <p class="mt-2"><b>Status:</b>
+//     <span class="text-yellow-400">${r.status}</span>
+//   </p>
 
-  <button
-    onclick="markResolved('${reportId}')"
-    class="mt-4 w-full py-2 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-900 font-semibold">
-    Mark as Resolved
-  </button>
-`;
-// 🔔 Notification elements
-const notifList = document.getElementById("notifList");
-const noNotif = document.getElementById("noNotif");
+//   <button
+//     onclick="markResolved('${reportId}')"
+//     class="mt-4 w-full py-2 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-900 font-semibold">
+//     Mark as Resolved
+//   </button>
+// `;
+// // 🔔 Notification elements
+// const notifList = document.getElementById("notifList");
+// const noNotif = document.getElementById("noNotif");
 
-// 🔔 Listen for notifications
-onValue(ref(database, "notifications/collector"), (snapshot) => {
-  notifList.innerHTML = "";
-  let hasNotif = false;
+// // 🔔 Listen for notifications
+// onValue(ref(database, "notifications/collector"), (snapshot) => {
+//   notifList.innerHTML = "";
+//   let hasNotif = false;
 
-  if (!snapshot.exists()) {
-    noNotif.classList.remove("hidden");
-    return;
-  }
+//   if (!snapshot.exists()) {
+//     noNotif.classList.remove("hidden");
+//     return;
+//   }
 
-  snapshot.forEach((child) => {
-    const notif = child.val();
+//   snapshot.forEach((child) => {
+//     const notif = child.val();
 
-    if (notif.seen) return;
+//     if (notif.seen) return;
 
-    hasNotif = true;
+//     hasNotif = true;
 
-    const li = document.createElement("li");
-    li.className =
-      "glass px-4 py-2 rounded-lg cursor-pointer hover:bg-white/10";
+//     const li = document.createElement("li");
+//     li.className =
+//       "glass px-4 py-2 rounded-lg cursor-pointer hover:bg-white/10";
 
-    li.innerHTML = `
-      🚨 ${notif.message}
-      <div class="text-xs text-slate-400 mt-1">
-        ${new Date(notif.timestamp).toLocaleString()}
-      </div>
-    `;
+//     li.innerHTML = `
+//       🚨 ${notif.message}
+//       <div class="text-xs text-slate-400 mt-1">
+//         ${new Date(notif.timestamp).toLocaleString()}
+//       </div>
+//     `;
 
-    li.onclick = () => {
-      // mark as seen
-      update(ref(database, "notifications/collector/" + child.key), {
-        seen: true
-      });
-    };
+//     li.onclick = () => {
+//       // mark as seen
+//       update(ref(database, "notifications/collector/" + child.key), {
+//         seen: true
+//       });
+//     };
 
-    notifList.appendChild(li);
-  });
+//     notifList.appendChild(li);
+//   });
 
-  if (!hasNotif) {
-    noNotif.classList.remove("hidden");
-  } else {
-    noNotif.classList.add("hidden");
-  }
-});
-
-
+//   if (!hasNotif) {
+//     noNotif.classList.remove("hidden");
+//   } else {
+//     noNotif.classList.add("hidden");
+//   }
+// });
 
 
-    container.appendChild(card);
-  });
 
-  if (!found) {
-    noReports.classList.remove("hidden");
-  }
-});
+
+//     container.appendChild(card);
+//   });
+
+//   if (!found) {
+//     noReports.classList.remove("hidden");
+//   }
+// });
 
 window.markResolved = async function (reportId) {
   const user = auth.currentUser;
