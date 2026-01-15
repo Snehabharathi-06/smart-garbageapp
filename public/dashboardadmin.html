@@ -4,6 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Smart-Garbage – Admin Dashboard</title>
+
+
   <!-- ✅ TAB ICON (FAVICON) -->
   <link rel="icon" type="image/png" href="images/logo.png">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -39,6 +41,12 @@
 
 <!-- HEADER -->
 <section class="text-center max-w-5xl mx-auto mb-10">
+   <button
+  onclick="openCallReportForm()"
+  class="mt-4 px-6 py-2 rounded-xl bg-sky-500 hover:bg-sky-400 text-black font-semibold"
+>
+  📞 Add Call / WhatsApp Complaint
+</button>
   <h1 class="text-4xl md:text-5xl font-extrabold mb-3" data-lang="appName3">
     Smart-Garbage Admin Dashboard
   </h1>
@@ -245,12 +253,60 @@ function updateCollectorChart(reports) {
   });
 }
 
+window.openCallReportForm = function () {
+  document.getElementById("callModal").classList.remove("hidden");
+};
 
+window.closeCallReportForm = function () {
+  document.getElementById("callModal").classList.add("hidden");
+};
+
+//🚀 Submit Call / WhatsApp Report
+import {
+  getDatabase,
+  ref,
+  onValue,
+  update,
+  push,
+  set
+} from "https://www.gstatic.com/firebasejs/12.7.0/firebase-database.js";
+
+
+window.submitCallReport = async function () {
+  const source = document.getElementById("callSource").value;
+  const phone = document.getElementById("callerPhone").value.trim();
+  const landmark = document.getElementById("callLandmark").value.trim();
+  const description = document.getElementById("callDescription").value.trim();
+
+  if (!phone || !landmark || !description) {
+    alert("Please fill all fields");
+    return;
+  }
+
+  const reportRef = push(ref(db, "reports"));
+
+  await set(reportRef, {
+    citizenEmail: "CALL_USER",
+    callerPhone: phone,
+    landmark,
+    description,
+    mapLink: "Manual (Call)",
+    imageBase64: null,
+
+    reportSource: source,            // 📞 / 📱
+    confidence: 70,                  // 🔒 FIXED
+    verificationStatus: "verified_by_call",
+
+    status: "pending",
+    timestamp: Date.now()
+  });
+
+  closeCallReportForm();
+};
 
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
-import { getDatabase, ref, onValue, update } 
-  from "https://www.gstatic.com/firebasejs/12.7.0/firebase-database.js";
+
 import { getAuth, signOut } 
   from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
 
@@ -346,6 +402,18 @@ function renderReports() {
       <p class="mt-2"><b>Description:</b>
         <span class="text-slate-300">${r.description}</span>
       </p>
+
+      <p class="mt-2">
+  <b>Reported Via:</b>
+  ${
+    r.reportSource === "phone_call"
+      ? "📞 Phone Call"
+      : r.reportSource === "whatsapp"
+      ? "📱 WhatsApp"
+      : "🌐 Web"
+  }
+</p>
+
 
       ${
         r.imageBase64
@@ -657,6 +725,46 @@ function updateChart(pending, resolved) {
     loadUserLanguage();
   });
 </script>
+
+<div id="callModal"
+  class="fixed inset-0 bg-black/70 hidden items-center justify-center z-50">
+
+  <div class="glass p-6 rounded-xl w-full max-w-md">
+    <h2 class="text-xl font-semibold mb-4">
+      📞 Call / WhatsApp Complaint
+    </h2>
+
+    <select id="callSource"
+      class="w-full mb-3 p-2 rounded bg-slate-800">
+      <option value="phone_call">📞 Phone Call</option>
+      <option value="whatsapp">📱 WhatsApp</option>
+    </select>
+
+    <input id="callerPhone"
+      placeholder="Caller Phone (+91...)"
+      class="w-full mb-3 p-2 rounded bg-slate-800" />
+
+    <input id="callLandmark"
+      placeholder="Landmark / Area"
+      class="w-full mb-3 p-2 rounded bg-slate-800" />
+
+    <textarea id="callDescription"
+      placeholder="Description"
+      class="w-full mb-3 p-2 rounded bg-slate-800"></textarea>
+
+    <div class="flex gap-3">
+      <button onclick="submitCallReport()"
+        class="flex-1 bg-emerald-500 text-black py-2 rounded">
+        Submit
+      </button>
+
+      <button onclick="closeCallReportForm()"
+        class="flex-1 bg-red-500 text-black py-2 rounded">
+        Cancel
+      </button>
+    </div>
+  </div>
+</div>
 
 
 </body>

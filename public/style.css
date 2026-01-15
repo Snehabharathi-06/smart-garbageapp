@@ -74,3 +74,48 @@ select {
   justify-content: space-between;
   align-items: flex-start;
 }
+
+
+.call-report-section {
+  margin-top: 30px;
+  padding: 20px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(12px);
+  text-align: center;
+}
+
+.call-report-section h3 {
+  color: #34d399;
+  margin-bottom: 10px;
+}
+
+.call-report-section p {
+  color: #cbd5e1;
+  font-size: 14px;
+  margin-bottom: 15px;
+}
+
+.call-actions {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+.call-btn,
+.whatsapp-btn {
+  padding: 10px 18px;
+  border-radius: 8px;
+  font-weight: bold;
+  text-decoration: none;
+  color: black;
+}
+
+.call-btn {
+  background: #38bdf8;
+}
+
+.whatsapp-btn {
+  background: #22c55e;
+}
