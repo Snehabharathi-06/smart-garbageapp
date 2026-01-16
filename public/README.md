@@ -24,7 +24,7 @@ Key Highlights
 
 👤 Citizen
 
-Submit garbage complaints using:
+* Submit garbage complaints using:
 
 📸 Camera / image upload
 
@@ -32,9 +32,9 @@ Submit garbage complaints using:
 
 📝 Landmark & description
 
-Auto-generated confidence score
+* Auto-generated confidence score
 
-Track report status:
+* Track report status:
 
 1.Pending
 
@@ -42,62 +42,62 @@ Track report status:
 
 3.Resolved
 
-View past submissions
+* View past submissions
 
-Language switch: English / Kannada
+* Language switch: English / Kannada
 
 
 🧑‍💼 Admin
 
-View all reports in real-time
+* View all reports in real-time
 
-Verify reports using:
+* Verify reports using:
 
-Evidence score
+* Evidence score
 
-Crowd verification
+* Crowd verification
 
-Call / WhatsApp verification
+* Call / WhatsApp verification
 
-Assign reports to collectors manually
+* Assign reports to collectors manually
 
-Add complaints received via:
+* Add complaints received via:
 
-  📞 Phone calls
+   * 📞 Phone calls
 
-  📱 WhatsApp
+   * 📱 WhatsApp
 
-Analytics dashboard:
+* Analytics dashboard:
 
 📊 Daily reports
 
-🟡 Pending vs 🟢 Resolved
+* 🟡 Pending vs 🟢 Resolved
 
 🚛 Collector performance
 
-Open exact report location in Google Maps
+* Open exact report location in Google Maps
 
 
 🚛 Collector
 
-View only assigned reports
+* View only assigned reports
 
-Receive instant notifications when work is assigned
+* Receive instant notifications when work is assigned
 
-Open location directly in Google Maps
+* Open location directly in Google Maps
 
-Mark reports as resolved
+* Mark reports as resolved
 
-Resolution automatically updates admin dashboard
+* Resolution automatically updates admin dashboard
 
 
 🔔 Notification System
 
-Admin assigns report → collector gets real-time notification
+* Admin assigns report → collector gets real-time notification
 
-Notifications stored per collector in Firebase
+* Notifications stored per collector in Firebase
 
-Read / unread status supported
+* Read / unread status supported
 
 
 🧠 Smart Verification & Confidence Logic
@@ -115,15 +115,15 @@ Description & landmark	      +40
 Multiple citizens reporting	  Bonus
 
 
-Verification Status
+Verification Status:
 
-verified → High confidence
+* verified → High confidence
 
-verified_by_crowd → Multiple reports
+* verified_by_crowd → Multiple reports
 
-verified_by_call → Admin call/WhatsApp
+* verified_by_call → Admin call/WhatsApp
 
-pending_review → Needs admin review
+* pending_review → Needs admin review
 
 ❗ Low confidence reports are not auto-rejected — admin decides.
 
@@ -160,6 +160,7 @@ Effects	    Three.js
 📂 Project Structure
 
 Smart-Garbage/
+
 │
 ├── index.html          # Login & landing page
 
@@ -187,34 +188,30 @@ Smart-Garbage/
 
 🚀 Future Enhancements
 
-AI-based garbage image validation
+* AI-based garbage image validation
 
-Area-wise automatic collector assignment
+* Area-wise automatic collector assignment
 
-Push notifications (mobile)
+* Push notifications (mobile)
 
-Heat-map for garbage-prone zones
+* Heat-map for garbage-prone zones
 
-SLA tracking for response time
+* SLA tracking for response time
 
-Progressive Web App (PWA)
+* Progressive Web App (PWA)
 
 👩‍💻 Developers
 
 Team : Code - Rebels
 
 1.Snehabharathi U
-
 2nd Year ISE ,Dr.Ambedkar Institute OF Technologoy, Bengaluru
 
 2.Teja M
-
 2nd Year ISE ,Dr.Ambedkar Institute OF Technologoy, Bengaluru
 
 3.Suchitra M
-
 2nd Year ISE ,Dr.Ambedkar Institute OF Technologoy, Bengaluru
 
 4.Varshitha Gowda H
-
 2nd Year ISE ,Dr.Ambedkar Institute OF Technologoy, Bengaluru
