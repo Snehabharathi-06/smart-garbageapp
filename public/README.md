@@ -26,21 +26,21 @@ Key Highlights
 
 * Submit garbage complaints using:
 
-📸 Camera / image upload
+  📸 Camera / image upload
 
-📍 GPS (Google Maps)
+  📍 GPS (Google Maps)
 
-📝 Landmark & description
+  📝 Landmark & description
 
 * Auto-generated confidence score
 
 * Track report status:
 
-1.Pending
+   1.Pending
 
-2.Assigned
+   2.Assigned
 
-3.Resolved
+   3.Resolved
 
 * View past submissions
 
@@ -161,7 +161,7 @@ Effects	    Three.js
 
 Smart-Garbage/
 
-│
+
 ├── index.html          # Login & landing page
 
 ├── citizen.html        # Citizen dashboard
@@ -204,14 +204,14 @@ Smart-Garbage/
 
 Team : Code - Rebels
 
-1.Snehabharathi U
+1.Snehabharathi U - 
 2nd Year ISE ,Dr.Ambedkar Institute OF Technologoy, Bengaluru
 
-2.Teja M
+2.Teja M - 
 2nd Year ISE ,Dr.Ambedkar Institute OF Technologoy, Bengaluru
 
-3.Suchitra M
+3.Suchitra M - 
 2nd Year ISE ,Dr.Ambedkar Institute OF Technologoy, Bengaluru
 
-4.Varshitha Gowda H
+4.Varshitha Gowda H - 
 2nd Year ISE ,Dr.Ambedkar Institute OF Technologoy, Bengaluru
