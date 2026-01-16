@@ -7,11 +7,17 @@ This system focuses on reducing fake complaints, improving response time, and br
 Key Highlights
 
 ✔ Evidence-based reporting (Photo + GPS)
+
 ✔ Auto confidence & verification scoring
+
 ✔ Admin-controlled task assignment
+
 ✔ Real-time collector notifications
+
 ✔ Call & WhatsApp complaint support
+
 ✔ Analytics dashboard & charts
+
 ✔ Multilingual support (English & Kannada)
 
 🧑‍💻 System Roles & Features
@@ -57,9 +63,9 @@ Assign reports to collectors manually
 
 Add complaints received via:
 
-📞 Phone calls
+  📞 Phone calls
 
-📱 WhatsApp
+  📱 WhatsApp
 
 Analytics dashboard:
 
@@ -99,10 +105,15 @@ Read / unread status supported
 Each report is scored automatically based on:
 
 Factor	                     Score
+
 Image evidence	              +30
+
 GPS location	              +30
+
 Description & landmark	      +40
+
 Multiple citizens reporting	  Bonus
+
 
 Verification Status
 
@@ -128,13 +139,21 @@ Bar chart: Collector performance
 Live updates using Firebase listeners
 
 🛠️ Tech Stack
+
 Layer	           Technology
+
 Frontend	HTML, Tailwind CSS, JavaScript
+
 Backend	    Firebase Realtime Database
+
 Auth	    Firebase Authentication
+
 Storage	    Firebase Storage
+
 Charts	    Chart.js
+
 Maps	    Google Maps
+
 Effects	    Three.js
 
 
@@ -143,13 +162,22 @@ Effects	    Three.js
 Smart-Garbage/
 │
 ├── index.html          # Login & landing page
+
 ├── citizen.html        # Citizen dashboard
+
 ├── admin.html          # Admin dashboard
+
 ├── collector.html     # Collector dashboard
+
 ├── lang.js             # Language translations
+
 ├── style.css           # Global styles
+
 ├── images/             # Logos & assets
+
 └── README.md           # Project documentation
+
+
 
 🌐 Language Support
 
