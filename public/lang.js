@@ -50,7 +50,15 @@ const translations = {
     dailyReports: "Daily Garbage Reports",
     collectorPerformance: "Collector Performance",
     allReports: "All Garbage Reports",
-    ForgotPassword:"Forgot Password?,Click Here"
+    ForgotPassword:"Forgot Password?,Click Here",
+    reportnologin:"📞 Report Garbage Without Login",
+    reportss:"If you don’t want to login or use email, you can report garbage issues by calling or sending a WhatsApp message.",
+    call:"📞 Call Helpline",
+    whatshapp:"📱 WhatsApp Report",
+    notification:"🔔 Notifications",
+    nonew:"No new notifications",
+    complaint:"📞 Add Call / WhatsApp Complaint",
+    all:"All Reports"
 
   },
 
@@ -104,7 +112,15 @@ const translations = {
     dailyReports: "ದೈನಂದಿನ ಕಸದ ವರದಿಗಳು",
     collectorPerformance: "ಕಲೆಕ್ಟರ್ ಕಾರ್ಯಕ್ಷಮತೆ",
     allReports: "ಎಲ್ಲಾ ಕಸದ ವರದಿಗಳು",
-    ForgotPassword:"ಪಾಸ್‌ವರ್ಡ್ ಮರೆತಿದ್ದೀರಾ?, ಇಲ್ಲಿ ಕ್ಲಿಕ್ ಮಾಡಿ"
+    ForgotPassword:"ಪಾಸ್‌ವರ್ಡ್ ಮರೆತಿದ್ದೀರಾ?, ಇಲ್ಲಿ ಕ್ಲಿಕ್ ಮಾಡಿ",
+    reportnologin:"📞 ಲಾಗಿನ್ ಇಲ್ಲದೆ ಕಸವನ್ನು ವರದಿ ಮಾಡಿ",
+    reportss:"ನೀವು ಲಾಗಿನ್ ಆಗಲು ಅಥವಾ ಇಮೇಲ್ ಬಳಸಲು ಬಯಸದಿದ್ದರೆ, ನೀವು ಕಸದ ಸಮಸ್ಯೆಗಳನ್ನು ಕರೆ ಮಾಡುವ ಮೂಲಕ ಅಥವಾ ವಾಟ್ಸಾಪ್ ಸಂದೇಶ ಕಳುಹಿಸುವ ಮೂಲಕ ವರದಿ ಮಾಡಬಹುದು.",
+    call:"📞 ಸಹಾಯವಾಣಿಗೆ ಕರೆ ಮಾಡಿ",
+    whatshapp:"📱 ವಾಟ್ಸಾಪ್ ವರದಿ",
+    notification:"🔔 ಅಧಿಸೂಚನೆಗಳು",
+    nonew:"ಯಾವುದೇ ಹೊಸ ಅಧಿಸೂಚನೆಗಳಿಲ್ಲ",
+    complaint:"📞 ಕರೆ / WhatsApp ದೂರು ಸೇರಿಸಿ",
+    all:"ಎಲ್ಲಾ ವರದಿಗಳು"
 
   }
 };
